@@ -11,3 +11,4 @@
 3. 复制模拟器/data/data/com.bilibili.priconne/shared_prefs文件夹下的bili_key.xml和TouristLogin.xml，放置到项目目录toolchain文件夹下
 4. 运行BiliPrefReader.exe
 5. 复制生成的account.json到项目根目录(pcrjjc2文件夹)下
+6. 本插件仅依赖于account.json即可以运行，不需要同时开着模拟器也不需要toolchain下任何其他文件，~~更不需要在服务器上开模拟器~~
