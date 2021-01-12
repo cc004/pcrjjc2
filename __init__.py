@@ -166,6 +166,11 @@ async def on_arena_schedule():
         try:
             res = await query(info['id'])
             res = (res['arena_rank'], res['grand_arena_rank'])
+
+            if user not in cache:
+                cache[user] = res
+                continue
+
             last = cache[user]
             cache[user] = res
 
