@@ -164,7 +164,7 @@ async def on_arena_schedule():
     for user in bind_cache:
         info = bind_cache[user]
         try:
-            res = ( await query(info['id']))['user_info']
+            res = await query(info['id'])
             res = (res['arena_rank'], res['grand_arena_rank'])
             last = cache[user]
             cache[user] = res
