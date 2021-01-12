@@ -185,8 +185,15 @@ async def on_arena_schedule():
                     group_id = int(binds[user]['gid']),
                     message = f'[CQ:at,qq={user}]您的公主竞技场排名发生变化：{last[1]}->{res[1]}'
                 )
+        except ApiException as e:
+            sv.logger.info(f'对{info["id"]}的检查出错\n{e}')
+            if code == 6:
+                with lck:
+                    binds.pop(user)
+                    save_binds()
+                sv.logger.info(f'已经自动删除错误的uid={info["id"]}')
         except Exception as e:
-            sv.logger.info(f'对{binds[user]["id"]}的检查出错\n{e}')
+            sv.logger.info(f'对{info["id"]}的检查出错\n{e}')
 
 @sv.on_notice('group_decrease.leave')
 async def leave_notice(session: NoticeSession):

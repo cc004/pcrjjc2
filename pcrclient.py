@@ -32,8 +32,9 @@ defaultHeaders = {
 }
 
 class ApiException(Exception):
-    def __init__(self, message):
+    def __init__(self, message, code):
         super().__init__(message)
+        self.code = code
 
 class pcrclient:
     '''
@@ -132,7 +133,7 @@ class pcrclient:
             data = data['server_error']
             print(f'pcrclient: {apiurl} api failed {data}')
             self.shouldLogin |= data['status'] == 3
-            raise ApiException(f'{data}')
+            raise ApiException(data['message'], data['status'])
 
         print(f'pcrclient: {apiurl} api called')
         return data
