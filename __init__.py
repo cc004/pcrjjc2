@@ -7,7 +7,7 @@ from threading import Lock
 from os.path import dirname, join, exists
 
 sv_help = '''
-[竞技场绑定 uid] 绑定竞技场排名变动推送（仅下降），默认双场均启用
+[竞技场绑定 uid] 绑定竞技场排名变动推送，默认双场均启用
 [竞技场查询 (uid)] 查询竞技场简要信息
 [停止竞技场订阅] 停止战斗竞技场排名变动推送
 [停止公主竞技场订阅] 停止公主竞技场排名变动推送

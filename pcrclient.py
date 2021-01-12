@@ -101,32 +101,31 @@ class pcrclient:
     async def callapi(self, apiurl: str, request: dict, crypted: bool = True):
         key = pcrclient.createkey()
 
-        self.lck.acquire()
-        
-        if self.viewer_id is not None:
-            request['viewer_id'] = b64encode(pcrclient.encrypt(str(self.viewer_id), key)) if crypted else str(self.viewer_id)
+        with lck:
+            
+            if self.viewer_id is not None:
+                request['viewer_id'] = b64encode(pcrclient.encrypt(str(self.viewer_id), key)) if crypted else str(self.viewer_id)
 
-        response = await (await post(apiroot + apiurl,
-            data = pcrclient.pack(request, key) if crypted else str(request).encode('utf8'),
-            headers = self.headers,
-            timeout = 2)).content
-        
-        response = pcrclient.unpack(response)[0] if crypted else loads(response)
+            response = await (await post(apiroot + apiurl,
+                data = pcrclient.pack(request, key) if crypted else str(request).encode('utf8'),
+                headers = self.headers,
+                timeout = 2)).content
+            
+            response = pcrclient.unpack(response)[0] if crypted else loads(response)
 
-        data_headers = response['data_headers']
+            data_headers = response['data_headers']
 
-        if 'sid' in data_headers and data_headers["sid"] != '':
-            t = md5()
-            t.update((data_headers['sid'] + 'c!SID!n').encode('utf8'))
-            self.headers['SID'] = t.hexdigest()
-        
-        if 'request_id' in data_headers:
-            self.headers['REQUEST-ID'] = data_headers['request_id']
+            if 'sid' in data_headers and data_headers["sid"] != '':
+                t = md5()
+                t.update((data_headers['sid'] + 'c!SID!n').encode('utf8'))
+                self.headers['SID'] = t.hexdigest()
+            
+            if 'request_id' in data_headers:
+                self.headers['REQUEST-ID'] = data_headers['request_id']
 
-        if 'viewer_id' in data_headers:
-            self.viewer_id = data_headers['viewer_id']
-
-        self.lck.release()
+            if 'viewer_id' in data_headers:
+                self.viewer_id = data_headers['viewer_id']
+                
         
         data = response['data']
         if 'server_error' in data:
