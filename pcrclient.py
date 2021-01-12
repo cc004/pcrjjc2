@@ -148,11 +148,14 @@ class pcrclient:
             'channel': str(self.channel),
             'platform': str(self.platform)
         })
-        await self.callapi('/check/game_start', {
+        gamestart = await self.callapi('/check/game_start', {
             'apptype': 0,
             'campaign_data': '',
             'campaign_user': randint(0, 99999)
         })
+        if not gamestart['now_tutorial']:
+            raise Exception("该账号没过完教程!")
+            
         await self.callapi('/check/check_agreement', {})
 
         await self.callapi('/load/index', {
