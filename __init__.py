@@ -150,7 +150,7 @@ async def send_arena_sub_status(bot,ev):
     竞技场订阅：{'开启' if info['arena_on'] else '关闭'}
     公主竞技场订阅：{'开启' if info['grand_arena_on'] else '关闭'}''',at_sender=True)
 
-@sv.scheduled_job('interval', minutes=5)
+@sv.scheduled_job('interval', minutes=1)
 async def on_arena_schedule():
     global cache, binds, lck
     bot = get_bot()
