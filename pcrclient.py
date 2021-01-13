@@ -109,7 +109,7 @@ class pcrclient:
             response = await (await post(apiroot + apiurl,
                 data = pcrclient.pack(request, key) if crypted else str(request).encode('utf8'),
                 headers = self.headers,
-                timeout = .01)).content
+                timeout = 10)).content
             
             response = pcrclient.unpack(response)[0] if crypted else loads(response)
 

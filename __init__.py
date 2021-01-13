@@ -177,7 +177,7 @@ async def send_arena_sub_status(bot,ev):
         lck.release()
 
 
-@sv.scheduled_job('interval', minutes=.01)
+@sv.scheduled_job('interval', minutes=1)
 async def on_arena_schedule():
     global cache, binds, lck
     bot = get_bot()
