@@ -1,7 +1,6 @@
 from msgpack import packb, unpackb
 from hoshino.aiorequests import post
 from random import randint
-from asyncio import Lock
 from json import loads
 from hashlib import md5
 from Crypto.Cipher import AES
@@ -59,7 +58,6 @@ class pcrclient:
         self.headers['PLATFORM-ID'] = str(self.platform)
         self.headers['CHANNEL-ID'] = str(self.channel)
 
-        self.lck = Lock()
         self.shouldLogin = True
 
     @staticmethod
@@ -102,8 +100,8 @@ class pcrclient:
     async def callapi(self, apiurl: str, request: dict, crypted: bool = True):
         key = pcrclient.createkey()
 
-        await self.lck.acquire()
-
+        print(f'callapi got req {request}')
+        
         try:    
             if self.viewer_id is not None:
                 request['viewer_id'] = b64encode(pcrclient.encrypt(str(self.viewer_id), key)) if crypted else str(self.viewer_id)
@@ -111,7 +109,7 @@ class pcrclient:
             response = await (await post(apiroot + apiurl,
                 data = pcrclient.pack(request, key) if crypted else str(request).encode('utf8'),
                 headers = self.headers,
-                timeout = 2)).content
+                timeout = .01)).content
             
             response = pcrclient.unpack(response)[0] if crypted else loads(response)
 
@@ -127,8 +125,9 @@ class pcrclient:
 
             if 'viewer_id' in data_headers:
                 self.viewer_id = data_headers['viewer_id']
-        finally:
-            self.lck.release()
+        except:
+            self.shouldLogin = True
+            raise
         
         data = response['data']
         if 'server_error' in data:
@@ -138,9 +137,13 @@ class pcrclient:
             raise ApiException(data['message'], data['status'])
 
         print(f'pcrclient: {apiurl} api called')
+        print(f'callapi ret{data}')
         return data
     
     async def login(self):
+        if 'REQUEST-ID' in self.headers:
+            self.headers.pop('REQUEST-ID')
+
         manifest = await self.callapi('/source_ini/get_maintenance_status?format=json', {}, False)
         ver = manifest['required_manifest_ver']
         print(f'using manifest ver = {ver}')

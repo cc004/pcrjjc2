@@ -43,12 +43,20 @@ binds = root['arena_bind']
 with open(join(curpath, 'account.json')) as fp:
     client = pcrclient(load(fp))
 
+qlck = Lock()
 async def query(id:str):
-    while client.shouldLogin:
-        await client.login()
-    return (await client.callapi('/profile/get_profile', {
-            'target_viewer_id': int(id)
-        }))['user_info']
+    await qlck.acquire()
+    try:
+        while client.shouldLogin:
+            await client.login()
+        print(f'query got{id}')
+        res = (await client.callapi('/profile/get_profile', {
+                'target_viewer_id': int(id)
+            }))['user_info']
+        print(f'query ret{res}')
+        return res
+    finally:
+        qlck.release()
 
 def save_binds():
     with open(config, 'w') as fp:
@@ -188,6 +196,7 @@ async def on_arena_schedule():
         try:
             sv.logger.info(f'querying {info["id"]} for {info["uid"]}')
             res = await query(info['id'])
+            print(f'get res{res}')
             res = (res['arena_rank'], res['grand_arena_rank'])
 
             if user not in cache:
