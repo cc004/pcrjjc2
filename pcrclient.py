@@ -100,8 +100,6 @@ class pcrclient:
     async def callapi(self, apiurl: str, request: dict, crypted: bool = True):
         key = pcrclient.createkey()
 
-        print(f'callapi got req {request}')
-        
         try:    
             if self.viewer_id is not None:
                 request['viewer_id'] = b64encode(pcrclient.encrypt(str(self.viewer_id), key)) if crypted else str(self.viewer_id)
@@ -137,7 +135,6 @@ class pcrclient:
             raise ApiException(data['message'], data['status'])
 
         print(f'pcrclient: {apiurl} api called')
-        print(f'callapi ret{data}')
         return data
     
     async def login(self):
