@@ -7,16 +7,14 @@ from asyncio import Lock
 from os.path import dirname, join, exists
 from copy import deepcopy
 
-sv_help = '''
-[竞技场绑定 uid] 绑定竞技场排名变动推送，默认双场均启用
+sv_help = '''[竞技场绑定 uid] 绑定竞技场排名变动推送，默认双场均启用
 [竞技场查询 (uid)] 查询竞技场简要信息
 [停止竞技场订阅] 停止战斗竞技场排名变动推送
 [停止公主竞技场订阅] 停止公主竞技场排名变动推送
 [启用竞技场订阅] 启用战斗竞技场排名变动推送
 [启用公主竞技场订阅] 启用公主竞技场排名变动推送
 [删除竞技场订阅] 删除竞技场排名变动推送绑定
-[竞技场订阅状态] 查看排名变动推送绑定状态
-'''
+[竞技场订阅状态] 查看排名变动推送绑定状态'''
 
 sv = Service('竞技场推送',help_=sv_help, bundle='pcr查询')
 
@@ -64,6 +62,7 @@ def save_binds():
 async def on_arena_bind(bot, ev):
     global binds, lck
 
+    await lck.acquire()
     try:
         uid = str(ev['user_id'])
         last = binds[uid] if uid in binds else None
