@@ -186,9 +186,9 @@ async def on_arena_schedule():
     for user in bind_cache:
         info = bind_cache[user]
         try:
+            sv.logger.info(f'querying {info["id"]} for {info["uid"]}')
             res = await query(info['id'])
             res = (res['arena_rank'], res['grand_arena_rank'])
-            sv.logger.info(f'{user}->{res}')
 
             if user not in cache:
                 cache[user] = res
@@ -210,7 +210,7 @@ async def on_arena_schedule():
                 )
         except ApiException as e:
             sv.logger.info(f'对{info["id"]}的检查出错\n{e}')
-            if code == 6:
+            if e.code == 6:
                 await lck.acquire()
                 try:
                     binds.pop(user)
