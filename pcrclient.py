@@ -1,7 +1,7 @@
 from msgpack import packb, unpackb
 from hoshino.aiorequests import post
 from random import randint
-from threading import Lock
+from asyncio import Lock
 from json import loads
 from hashlib import md5
 from Crypto.Cipher import AES
@@ -102,8 +102,9 @@ class pcrclient:
     async def callapi(self, apiurl: str, request: dict, crypted: bool = True):
         key = pcrclient.createkey()
 
-        with self.lck:
-            
+        await self.lck.acquire()
+
+        try:    
             if self.viewer_id is not None:
                 request['viewer_id'] = b64encode(pcrclient.encrypt(str(self.viewer_id), key)) if crypted else str(self.viewer_id)
 
@@ -126,7 +127,8 @@ class pcrclient:
 
             if 'viewer_id' in data_headers:
                 self.viewer_id = data_headers['viewer_id']
-                
+        finally:
+            self.lck.release()
         
         data = response['data']
         if 'server_error' in data:
