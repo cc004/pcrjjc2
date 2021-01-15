@@ -83,13 +83,13 @@ class pcrclient:
         return aes.encrypt(pcrclient.add_to_16(data.encode('utf8'))) + key
 
     @staticmethod
-    def decrypt(data: bytes) -> (bytes, bytes):
+    def decrypt(data: bytes):
         data = b64decode(data.decode('utf8'))
         aes = AES.new(data[-32:], AES.MODE_CBC, b'ha4nBYA2APUD6Uv1')
         return aes.decrypt(data[:-32]), data[-32:]
 
     @staticmethod
-    def unpack(data: bytes) -> (dict, bytes):
+    def unpack(data: bytes):
         data = b64decode(data.decode('utf8'))
         aes = AES.new(data[-32:], AES.MODE_CBC, b'ha4nBYA2APUD6Uv1')
         dec = aes.decrypt(data[:-32])
