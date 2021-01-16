@@ -83,13 +83,13 @@ class pcrclient:
         return aes.encrypt(pcrclient.add_to_16(data.encode('utf8'))) + key
 
     @staticmethod
-    def decrypt(data: bytes) -> (bytes, bytes):
+    def decrypt(data: bytes):
         data = b64decode(data.decode('utf8'))
         aes = AES.new(data[-32:], AES.MODE_CBC, b'ha4nBYA2APUD6Uv1')
         return aes.decrypt(data[:-32]), data[-32:]
 
     @staticmethod
-    def unpack(data: bytes) -> (dict, bytes):
+    def unpack(data: bytes):
         data = b64decode(data.decode('utf8'))
         aes = AES.new(data[-32:], AES.MODE_CBC, b'ha4nBYA2APUD6Uv1')
         dec = aes.decrypt(data[:-32])
@@ -123,19 +123,18 @@ class pcrclient:
 
             if 'viewer_id' in data_headers:
                 self.viewer_id = data_headers['viewer_id']
+        
+            data = response['data']
+            if 'server_error' in data:
+                data = data['server_error']
+                print(f'pcrclient: {apiurl} api failed {data}')
+                raise ApiException(data['message'], data['status'])
+
+            print(f'pcrclient: {apiurl} api called')
+            return data
         except:
             self.shouldLogin = True
             raise
-        
-        data = response['data']
-        if 'server_error' in data:
-            data = data['server_error']
-            print(f'pcrclient: {apiurl} api failed {data}')
-            self.shouldLogin |= data['status'] == 3
-            raise ApiException(data['message'], data['status'])
-
-        print(f'pcrclient: {apiurl} api called')
-        return data
     
     async def login(self):
         if 'REQUEST-ID' in self.headers:

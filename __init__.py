@@ -205,7 +205,7 @@ async def on_arena_schedule():
                     group_id = int(info['gid']),
                     message = f'[CQ:at,qq={info["uid"]}]您的公主竞技场排名发生变化：{last[1]}->{res[1]}'
                 )
-        except ApiException as e:
+        except ApiException as e: # FIXME: 更改query实现之后可能无法抛出这个异常
             sv.logger.info(f'对{info["id"]}的检查出错\n{format_exc()}')
             if e.code == 6:
 
