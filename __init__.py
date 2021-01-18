@@ -168,7 +168,7 @@ async def send_arena_sub_status(bot,ev):
     公主竞技场订阅：{'开启' if info['grand_arena_on'] else '关闭'}''',at_sender=True)
 
 
-@sv.scheduled_job('interval', minutes=.01)
+@sv.scheduled_job('interval', minutes=.5)
 async def on_arena_schedule():
     global cache, binds, lck
     bot = get_bot()
@@ -220,10 +220,8 @@ async def on_arena_schedule():
 async def leave_notice(session: NoticeSession):
     global lck, binds
     uid = str(session.ctx['user_id'])
-    await lck.acquire()
-    try:
+    
+    async with lck:
         if uid in binds:
             binds.pop(uid)
             save_binds()
-    finally:
-        lck.release()

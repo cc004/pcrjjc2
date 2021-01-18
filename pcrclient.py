@@ -12,7 +12,7 @@ defaultHeaders = {
     'Accept-Encoding' : 'gzip',
     'User-Agent' : 'Dalvik/2.1.0 (Linux, U, Android 5.1.1, PCRT00 Build/LMY48Z)',
     'X-Unity-Version' : '2017.4.37c2',
-    'APP-VER' : '2.4.9',
+    'APP-VER' : '2.4.10',
     'BATTLE-LOGIC-VERSION' : '3',
     'BUNDLE-VER' : '',
     'DEVICE' : '2',
