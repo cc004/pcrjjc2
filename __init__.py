@@ -1,12 +1,13 @@
 from json import load, dump
 from nonebot import get_bot
-from hoshino import Service, priv
+from hoshino import priv
 from hoshino.typing import NoticeSession
 from .pcrclient import pcrclient, ApiException
-from asyncio import Lock, get_event_loop, run_coroutine_threadsafe
+from asyncio import Lock, get_event_loop
 from os.path import dirname, join, exists
 from copy import deepcopy
 from traceback import format_exc
+from .safeservice import SafeService
 
 sv_help = '''[竞技场绑定 uid] 绑定竞技场排名变动推送，默认双场均启用
 [竞技场查询 (uid)] 查询竞技场简要信息
@@ -17,7 +18,9 @@ sv_help = '''[竞技场绑定 uid] 绑定竞技场排名变动推送，默认双
 [删除竞技场订阅] 删除竞技场排名变动推送绑定
 [竞技场订阅状态] 查看排名变动推送绑定状态'''
 
-sv = Service('竞技场推送',help_=sv_help, bundle='pcr查询')
+query_loop = get_event_loop()
+
+sv = SafeService('竞技场推送',help_=sv_help, bundle='pcr查询', loop = query_loop)
 
 @sv.on_fullmatch('jjc帮助', only_to_me=False)
 async def send_jjchelp(bot, ev):
@@ -42,17 +45,9 @@ binds = root['arena_bind']
 with open(join(curpath, 'account.json')) as fp:
     client = pcrclient(load(fp))
 
-query_loop = get_event_loop()
-
 qlck = Lock()
 
 async def query(id: str):
-    def syncfunc(id: str):
-        return run_coroutine_threadsafe(query(id), query_loop).result()
-    
-    if get_event_loop() != query_loop:
-        return await get_event_loop().run_in_executor(None, syncfunc, id)
-
     async with qlck:
         while client.shouldLogin:
             await client.login()
@@ -140,28 +135,27 @@ async def delete_arena_sub(bot,ev):
         uid = str(ev['user_id'])
 
 
-    async with lck:
-        if not uid in binds:
-            await bot.finish(ev, '未绑定竞技场', at_sender=True)
-            return
+    if not uid in binds:
+        await bot.finish(ev, '未绑定竞技场', at_sender=True)
+        return
 
+    async with lck:
         binds.pop(uid)
         save_binds()
 
-        await bot.finish(ev, '删除竞技场订阅成功', at_sender=True)
+    await bot.finish(ev, '删除竞技场订阅成功', at_sender=True)
 
 @sv.on_fullmatch('竞技场订阅状态')
 async def send_arena_sub_status(bot,ev):
     global binds, lck
     uid = str(ev['user_id'])
 
-
-    async with lck:
-        if not uid in binds:
-            await bot.send(ev,'您还未绑定竞技场', at_sender=True)
-        else:
-            info = binds[uid]
-            await bot.finish(ev,
+    
+    if not uid in binds:
+        await bot.send(ev,'您还未绑定竞技场', at_sender=True)
+    else:
+        info = binds[uid]
+        await bot.finish(ev,
     f'''
     当前竞技场绑定ID：{info['id']}
     竞技场订阅：{'开启' if info['arena_on'] else '关闭'}
@@ -174,7 +168,6 @@ async def on_arena_schedule():
     bot = get_bot()
     
     bind_cache = {}
-
 
     async with lck:
         bind_cache = deepcopy(binds)
