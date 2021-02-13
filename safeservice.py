@@ -5,8 +5,12 @@ from asyncio import get_event_loop, run_coroutine_threadsafe
 class SafeService(Service):
 
     def __init__(self, *args, **kwargs):
-        self.invokeloop = kwargs['loop']
-        kwargs.pop('loop')
+        if 'loop' in kwargs:
+            self.invokeloop = kwargs['loop']
+            kwargs.pop('loop')
+        else:
+            self.invokeloop = get_event_loop()
+            
         super().__init__(*args, **kwargs)
 
     @staticmethod
