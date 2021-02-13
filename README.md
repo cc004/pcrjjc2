@@ -6,7 +6,11 @@
 
 ## 配置方法
 
-1. 环境需求：.net framework 4.5及以上 jre8
+1. 环境需求：.net framework 4.5及以上 **jre8**  
+**别忘了装jre8**  
+**别忘了装jre8**  
+**别忘了装jre8**  
+**重要的事情说三遍**
 2. 用模拟器或**root过**的手机打开公主连结，并且游客登录或者账号登录，**并过完全部教程**
 3. 复制模拟器/data/data/com.bilibili.priconne/shared_prefs文件夹下的bili_key.xml和TouristLogin.xml或login.xml(如果是游客登录就是touristlogin.xml, 如果是账号登录是login.xml)，放置到项目目录toolchain文件夹下
 4. 运行BiliPrefReader.exe
