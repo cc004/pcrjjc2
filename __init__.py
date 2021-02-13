@@ -18,9 +18,7 @@ sv_help = '''[竞技场绑定 uid] 绑定竞技场排名变动推送，默认双
 [删除竞技场订阅] 删除竞技场排名变动推送绑定
 [竞技场订阅状态] 查看排名变动推送绑定状态'''
 
-query_loop = get_event_loop()
-
-sv = SafeService('竞技场推送',help_=sv_help, bundle='pcr查询', loop = query_loop)
+sv = SafeService('竞技场推送',help_=sv_help, bundle='pcr查询')
 
 @sv.on_fullmatch('jjc帮助', only_to_me=False)
 async def send_jjchelp(bot, ev):
@@ -162,7 +160,7 @@ async def send_arena_sub_status(bot,ev):
     公主竞技场订阅：{'开启' if info['grand_arena_on'] else '关闭'}''',at_sender=True)
 
 
-@sv.scheduled_job('interval', minutes=.5)
+@sv.scheduled_job('interval', minutes=1)
 async def on_arena_schedule():
     global cache, binds, lck
     bot = get_bot()
@@ -211,7 +209,7 @@ async def on_arena_schedule():
 
 @sv.on_notice('group_decrease.leave')
 async def leave_notice(session: NoticeSession):
-    global lck, binds
+    global lck, bind
     uid = str(session.ctx['user_id'])
     
     async with lck:

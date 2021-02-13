@@ -5,6 +5,7 @@ from json import loads
 from hashlib import md5
 from Crypto.Cipher import AES
 from base64 import b64encode, b64decode
+from . import bsgamesdk
 
 apiroot = 'http://l3-prod-all-gs-gzlj.bilibiligame.net'
 
@@ -35,6 +36,15 @@ class ApiException(Exception):
         super().__init__(message)
         self.code = code
 
+class bsdkclient:
+    def __init__(self, account, pwd, captchaVerifier):
+        self.account = account
+        self.pwd = pwd
+        self.captchaVerifier = captchaVerifier
+    
+    def login():
+        pass
+    
 class pcrclient:
     '''
         acccountinfo = {

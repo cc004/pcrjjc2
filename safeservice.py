@@ -1,12 +1,16 @@
-from typing import Callable, overload
+from typing import Callable
 from hoshino import Service
-from asyncio import get_event_loop, run_coroutine_threadsafe
+from asyncio import get_event_loop, run_coroutine_threadsafe, Lock
 
 class SafeService(Service):
 
     def __init__(self, *args, **kwargs):
-        self.invokeloop = kwargs['loop']
-        kwargs.pop('loop')
+        if 'loop' in kwargs:
+            self.invokeloop = kwargs['loop']
+            kwargs.pop('loop')
+        else:
+            self.invokeloop = get_event_loop()
+            
         super().__init__(*args, **kwargs)
 
     @staticmethod
