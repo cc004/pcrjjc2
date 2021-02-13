@@ -6,21 +6,11 @@
 
 ## 配置方法
 
-1. 环境需求：.net framework 4.5及以上 **jre8**  
-**别忘了装jre8**  
-**别忘了装jre8**  
-**别忘了装jre8**  
-**重要的事情说三遍**
-2. 用模拟器或**root过**的手机打开公主连结，并且游客登录或者账号登录，**并过完全部教程**
-3. 复制模拟器/data/data/com.bilibili.priconne/shared_prefs文件夹下的bili_key.xml和TouristLogin.xml或login.xml(如果是游客登录就是touristlogin.xml, 如果是账号登录是login.xml)，放置到项目目录toolchain文件夹下
-4. 运行BiliPrefReader.exe
-5. 复制生成的touristlogin.json或者login.json到项目根目录(pcrjjc2文件夹)下，并重命名为account.json 似乎这一步会有奇妙的bug，导致只有output.txt生成，此时请把报错文件err.log发给我/提到issue上，可以手动构造account.json，参数如下：
-```json
-{
-    "uid": "output.txt中的uid_long，数字格式",
-    "access_key": "output.txt中的access_token",
-    "platform": 2,
-    "channel": 1
-}
-```
-6. 本插件仅依赖于account.json即可以运行，不需要同时开着模拟器也不需要toolchain下任何其他文件，~~更不需要在服务器上开模拟器~~
+1. 更改account.json内的account和password为你的bilibili账号的用户名和密码, admin为管理员的qq，用来接受bilibili验证码进行登录
+2. 机器人登录需要验证码时会将链接形式私聊发给admin，这时你需要点进链接正确验证，如果成功，将会出现如下的内容：  
+`
+validate=c721fe67f0196d7defad7245f6e58d62
+seccode=c721fe67f0196d7defad7245f6e58d62|jordan
+`  
+此时，你需要将验证结果发给机器人，通过指令`/jjcval c721fe67f0196d7defad7245f6e58d62`即可完成验证（测试的时候似乎私聊没反应？私聊没反应的话就在群里发也可以，反正不泄露密码，大概率是程序没写好）
+3. account.json里面的platform和channel分别代表android和b服，emmm最好别改，改了我也不知道可不可以用

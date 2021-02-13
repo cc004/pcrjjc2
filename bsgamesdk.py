@@ -1,20 +1,23 @@
+from typing import Coroutine
 import requests
 import json
 import time
 import hashlib
-import rsacr
+from . import rsacr
 import urllib
+from hoshino.aiorequests import post
 
 bililogin="https://line1-sdk-center-login-sh.biligame.net/"
 
-def sendpost(url,data):
+async def sendpost(url,data):
     header ={
         "User-Agent": "Mozilla/5.0 BSGameSDK",
         "Content-Type": "application/x-www-form-urlencoded",
         "Host": "line1-sdk-center-login-sh.biligame.net"
     }
-    res = requests.post(url=url,data=data,headers=header)
-    return res
+    res = await (await post(url=url,data=data,headers=header)).content
+    return json.loads(res)
+
 def setsign(data):
     data["timestamp"]=int(time.time())
     data["client_timestamp"]=int(time.time())
@@ -35,11 +38,10 @@ def setsign(data):
 modolrsa='{"operators":"5","merchant_id":"1","isRoot":"0","domain_switch_count":"0","sdk_type":"1","sdk_log_type":"1","timestamp":"1613035485639","support_abis":"x86,armeabi-v7a,armeabi","access_key":"","sdk_ver":"3.4.2","oaid":"","dp":"1280*720","original_domain":"","imei":"227656364311444","version":"1","udid":"KREhESMUIhUjFnJKNko2TDQFYlZkB3cdeQ==","apk_sign":"e89b158e4bcf988ebd09eb83f5378e87","platform_type":"3","old_buvid":"XZA2FA4AC240F665E2F27F603ABF98C615C29","android_id":"84567e2dda72d1d4","fingerprint":"","mac":"08:00:27:53:DD:12","server_id":"1592","domain":"line1-sdk-center-login-sh.biligame.net","app_id":"1370","version_code":"90","net":"4","pf_ver":"6.0.1","cur_buvid":"XZA2FA4AC240F665E2F27F603ABF98C615C29","c":"1","brand":"Android","client_timestamp":"1613035486888","channel_id":"1","uid":"","game_id":"1370","ver":"2.4.10","model":"MuMu"}'
 modollogin='{"operators":"5","merchant_id":"1","isRoot":"0","domain_switch_count":"0","sdk_type":"1","sdk_log_type":"1","timestamp":"1613035508188","support_abis":"x86,armeabi-v7a,armeabi","access_key":"","sdk_ver":"3.4.2","oaid":"","dp":"1280*720","original_domain":"","imei":"227656364311444","gt_user_id":"fac83ce4326d47e1ac277a4d552bd2af","seccode":"","version":"1","udid":"KREhESMUIhUjFnJKNko2TDQFYlZkB3cdeQ==","apk_sign":"e89b158e4bcf988ebd09eb83f5378e87","platform_type":"3","old_buvid":"XZA2FA4AC240F665E2F27F603ABF98C615C29","android_id":"84567e2dda72d1d4","fingerprint":"","validate":"84ec07cff0d9c30acb9fe46b8745e8df","mac":"08:00:27:53:DD:12","server_id":"1592","domain":"line1-sdk-center-login-sh.biligame.net","app_id":"1370","pwd":"rxwA8J+GcVdqa3qlvXFppusRg4Ss83tH6HqxcciVsTdwxSpsoz2WuAFFGgQKWM1+GtFovrLkpeMieEwOmQdzvDiLTtHeQNBOiqHDfJEKtLj7h1nvKZ1Op6vOgs6hxM6fPqFGQC2ncbAR5NNkESpSWeYTO4IT58ZIJcC0DdWQqh4=","version_code":"90","net":"4","pf_ver":"6.0.1","cur_buvid":"XZA2FA4AC240F665E2F27F603ABF98C615C29","c":"1","brand":"Android","client_timestamp":"1613035509437","channel_id":"1","uid":"","captcha_type":"1","game_id":"1370","challenge":"efc825eaaef2405c954a91ad9faf29a2","user_id":"doo349","ver":"2.4.10","model":"MuMu"}'
 modolcaptch='{"operators":"5","merchant_id":"1","isRoot":"0","domain_switch_count":"0","sdk_type":"1","sdk_log_type":"1","timestamp":"1613035486182","support_abis":"x86,armeabi-v7a,armeabi","access_key":"","sdk_ver":"3.4.2","oaid":"","dp":"1280*720","original_domain":"","imei":"227656364311444","version":"1","udid":"KREhESMUIhUjFnJKNko2TDQFYlZkB3cdeQ==","apk_sign":"e89b158e4bcf988ebd09eb83f5378e87","platform_type":"3","old_buvid":"XZA2FA4AC240F665E2F27F603ABF98C615C29","android_id":"84567e2dda72d1d4","fingerprint":"","mac":"08:00:27:53:DD:12","server_id":"1592","domain":"line1-sdk-center-login-sh.biligame.net","app_id":"1370","version_code":"90","net":"4","pf_ver":"6.0.1","cur_buvid":"XZA2FA4AC240F665E2F27F603ABF98C615C29","c":"1","brand":"Android","client_timestamp":"1613035487431","channel_id":"1","uid":"","game_id":"1370","ver":"2.4.10","model":"MuMu"}'
-def login1(account,password):
+async def login1(account,password):
     data=json.loads(modolrsa)
     data=setsign(data)
-    rsa=sendpost(bililogin+"api/client/rsa",data)
-    rsa=json.loads(rsa.text)
+    rsa=await sendpost(bililogin+"api/client/rsa",data)
     data=json.loads(modollogin)
     public_key=rsa['rsa_key']
     data["access_key"]=""
@@ -50,13 +52,11 @@ def login1(account,password):
     data["validate"]=""
     data["pwd"]=rsacr.rsacreate(rsa['hash']+password,public_key)
     data=setsign(data)
-    back=sendpost(bililogin+"api/client/login",data)
-    return back.text
-def login2(account,password,challenge,gt_user,validate):
+    return await sendpost(bililogin+"api/client/login",data)
+async def login2(account,password,challenge,gt_user,validate):
     data=json.loads(modolrsa)
     data=setsign(data)
-    rsa=sendpost(bililogin+"api/client/rsa",data)
-    rsa=json.loads(rsa.text)
+    rsa=await sendpost(bililogin+"api/client/rsa",data)
     data=json.loads(modollogin)
     public_key=rsa['rsa_key']
     data["access_key"]=""
@@ -67,15 +67,13 @@ def login2(account,password,challenge,gt_user,validate):
     data["validate"]=validate
     data["seccode"]=validate+"|jordan"
     data["pwd"]=rsacr.rsacreate(rsa['hash']+password,public_key)
-    print(data)
     data=setsign(data)
-    back=sendpost(bililogin+"api/client/login",data)
-    return back.text
-def captch():
+    return await sendpost(bililogin+"api/client/login",data)
+async def captch():
     data=json.loads(modolcaptch)
     data=setsign(data)
-    back=sendpost(bililogin+"api/client/start_captcha",data)
-    return back
+    return await sendpost(bililogin+"api/client/start_captcha",data)
+    '''
 def make_captch(gt,challenge,gt_user):
     data={}
     data['username']=""
@@ -89,27 +87,22 @@ def make_captch(gt,challenge,gt_user):
     print(data)
     res = requests.get(url="http://api.ydaaa.com/start_handle",params=data)
     return res
-def login(bili_account,bili_pwd):
-    login_sta=login1(bili_account,bili_pwd)
-    login_sta=json.loads(login_sta)
+    '''
+async def login(bili_account,bili_pwd, make_captch):
+    print(f'logging in with acc={bili_account}, pwd = {bili_pwd}')
+    login_sta= await login1(bili_account,bili_pwd)
     if "access_key" not in login_sta:
-        cap=captch()
-        print(cap.text)
-        cap=json.loads(cap.text)
-        captch_done=make_captch(cap['gt'],cap['challenge'],cap['gt_user_id'])
-        captch_done=json.loads(captch_done.text)
-        print(captch_done)
-        if captch_done["code"]==200:
-            login_sta=login2(bili_account,bili_pwd,cap["challenge"],cap['gt_user_id'],captch_done["data"]["validate"])
-            login_sta=json.loads(login_sta)
-            return login_sta
-        else:
-            return fail
+        cap=await captch()
+        captch_done=await make_captch(cap['gt'],cap['challenge'],cap['gt_user_id'])
+        login_sta=await login2(bili_account,bili_pwd,cap["challenge"],cap['gt_user_id'],captch_done)
+        return login_sta
     else:
         return login_sta
+'''
 def getcap():
     cap=captch()
     print(cap.text)
     cap=json.loads(cap.text)
     capurl=f"https://help.tencentbot.top/geetest/?captcha_type=1&challenge={cap['challenge']}&gt={cap['gt']}&userid={cap['gt_user_id']}&gs=1"
     return capurl
+'''

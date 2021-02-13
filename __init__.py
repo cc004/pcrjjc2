@@ -2,8 +2,8 @@ from json import load, dump
 from nonebot import get_bot
 from hoshino import priv
 from hoshino.typing import NoticeSession
-from .pcrclient import pcrclient, ApiException
-from asyncio import Lock, get_event_loop
+from .pcrclient import pcrclient, ApiException, bsdkclient
+from asyncio import Lock
 from os.path import dirname, join, exists
 from copy import deepcopy
 from traceback import format_exc
@@ -40,12 +40,49 @@ if exists(config):
 
 binds = root['arena_bind']
 
+captcha_lck = Lock()
+
 with open(join(curpath, 'account.json')) as fp:
-    client = pcrclient(load(fp))
+    acinfo = load(fp)
+
+bot = get_bot()
+validate = None
+validating = False
+acfirst = False
+
+async def captchaVerifier(gt, challenge, userid):
+    global acfirst, validating
+    if not acfirst:
+        await captcha_lck.acquire()
+        acfirst = True
+    
+    if acinfo['admin'] == 0:
+        bot.logger.error('captcha is required while admin qq is not set, so the login can\'t continue')
+    else:
+        url = f"https://help.tencentbot.top/geetest/?captcha_type=1&challenge={challenge}&gt={gt}&userid={userid}&gs=1"
+        await bot.send_private_msg(
+            user_id = acinfo['admin'],
+            message = f'pcr账号登录需要验证码，请完成以下链接中的验证内容后将第一行validate=后面的内容复制，并用指令/jjcval xxxx将内容发送给机器人完成验证\n验证链接：{url}'
+        )
+    validating = True
+    await captcha_lck.acquire()
+    validating = False
+    return validate
+
+async def errlogger(msg):
+    await bot.send_private_msg(
+        user_id = acinfo['admin'],
+        message = f'pcrjjc2登录错误：{msg}'
+    )
+
+bclient = bsdkclient(acinfo, captchaVerifier, errlogger)
+client = pcrclient(bclient)
 
 qlck = Lock()
 
 async def query(id: str):
+    if validating:
+        raise ApiException('账号被风控，请联系管理员输入验证码并重新登录', -1)
     async with qlck:
         while client.shouldLogin:
             await client.login()
@@ -117,6 +154,12 @@ async def change_arena_sub(bot, ev):
             save_binds()
             await bot.finish(ev, f'{ev["match"].group(0)}成功', at_sender=True)
 
+@sv.on_rex('/jjcval (.*)')
+async def validate(bot, ev):
+    global binds, lck, validate
+    if ev['user_id'] == acinfo['admin']:
+        validate = ev['match'].group(1)
+        captcha_lck.release()
 
 @sv.on_prefix('删除竞技场订阅')
 async def delete_arena_sub(bot,ev):
@@ -196,7 +239,7 @@ async def on_arena_schedule():
                     group_id = int(info['gid']),
                     message = f'[CQ:at,qq={info["uid"]}]您的公主竞技场排名发生变化：{last[1]}->{res[1]}，降低了{res[1]-last[1]}名。'
                 )
-        except ApiException as e: # FIXME: 更改query实现之后可能无法抛出这个异常
+        except ApiException as e:
             sv.logger.info(f'对{info["id"]}的检查出错\n{format_exc()}')
             if e.code == 6:
 
