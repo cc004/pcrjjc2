@@ -7,6 +7,10 @@ from hashlib import md5
 from Crypto.Cipher import AES
 from base64 import b64encode, b64decode
 from .bsgamesdk import login
+from asyncio import sleep
+from re import search
+from datetime import datetime
+from dateutil.parser import parse
 
 apiroot = 'http://l3-prod-all-gs-gzlj.bilibiligame.net'
 
@@ -121,7 +125,7 @@ class pcrclient:
             strict_map_key = False
         ), data[-32:]
 
-    async def callapi(self, apiurl: str, request: dict, crypted: bool = True):
+    async def callapi(self, apiurl: str, request: dict, crypted: bool = True, noerr: bool = False):
         key = pcrclient.createkey()
 
         try:    
@@ -149,7 +153,7 @@ class pcrclient:
                 self.viewer_id = data_headers['viewer_id']
         
             data = response['data']
-            if 'server_error' in data:
+            if not noerr and 'server_error' in data:
                 data = data['server_error']
                 print(f'pcrclient: {apiurl} api failed {data}')
                 raise ApiException(data['message'], data['status'])
@@ -167,7 +171,21 @@ class pcrclient:
         if 'REQUEST-ID' in self.headers:
             self.headers.pop('REQUEST-ID')
 
-        manifest = await self.callapi('/source_ini/get_maintenance_status?format=json', {}, False)
+        while True:
+            manifest = await self.callapi('/source_ini/get_maintenance_status?format=json', {}, False, noerr = True)
+            if 'maintenance_message' not in manifest:
+                break
+
+            try:
+                match = search('\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d', manifest['maintenance_message']).group()
+                end = parse(match)
+                print(f'server is in maintenance until {match}')
+                while datetime.now() < end:
+                    await sleep(1)
+            except:
+                print(f'server is in maintenance. waiting for 60 secs')
+                await sleep(60)
+
         ver = manifest['required_manifest_ver']
         print(f'using manifest ver = {ver}')
         self.headers['MANIFEST-VER'] = str(ver)
@@ -203,3 +221,5 @@ class pcrclient:
         })
 
         self.shouldLogin = False
+
+

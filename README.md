@@ -15,3 +15,4 @@ seccode=c721fe67f0196d7defad7245f6e58d62|jordan
 `  
 此时，你需要将验证结果发给机器人，通过指令`/jjcval c721fe67f0196d7defad7245f6e58d62`即可完成验证（测试的时候似乎私聊没反应？私聊没反应的话就在群里发也可以，反正不泄露密码，大概率是程序没写好）
 3. account.json里面的platform和channel分别代表android和b服，emmm最好别改，改了我也不知道可不可以用
+4. 如果想推送全部排名变化（而不仅仅是上升排名变化），请切换到分支`notice-all`
