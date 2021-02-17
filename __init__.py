@@ -1,5 +1,5 @@
 from json import load, dump
-from nonebot import get_bot
+from nonebot import get_bot, on_command
 from hoshino import priv
 from hoshino.typing import NoticeSession
 from .pcrclient import pcrclient, ApiException, bsdkclient
@@ -154,11 +154,11 @@ async def change_arena_sub(bot, ev):
             save_binds()
             await bot.finish(ev, f'{ev["match"].group(0)}成功', at_sender=True)
 
-@sv.on_rex('/jjcval (.*)')
-async def validate(bot, ev):
+@on_command('/jjcval')
+async def validate(session):
     global binds, lck, validate
-    if ev['user_id'] == acinfo['admin']:
-        validate = ev['match'].group(1)
+    if session.ctx['user_id'] == acinfo['admin']:
+        validate = session.ctx['message'].extract_plain_text().strip()[8:]
         captcha_lck.release()
 
 @sv.on_prefix('删除竞技场订阅')
