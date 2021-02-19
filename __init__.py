@@ -62,7 +62,7 @@ async def captchaVerifier(gt, challenge, userid):
         url = f"https://help.tencentbot.top/geetest/?captcha_type=1&challenge={challenge}&gt={gt}&userid={userid}&gs=1"
         await bot.send_private_msg(
             user_id = acinfo['admin'],
-            message = f'pcr账号登录需要验证码，请完成以下链接中的验证内容后将第一行validate=后面的内容复制，并用指令/jjcval xxxx将内容发送给机器人完成验证\n验证链接：{url}'
+            message = f'pcr账号登录需要验证码，请完成以下链接中的验证内容后将第一行validate=后面的内容复制，并用指令/pcrval xxxx将内容发送给机器人完成验证\n验证链接：{url}'
         )
     validating = True
     await captcha_lck.acquire()
@@ -154,7 +154,7 @@ async def change_arena_sub(bot, ev):
             save_binds()
             await bot.finish(ev, f'{ev["match"].group(0)}成功', at_sender=True)
 
-@on_command('/jjcval')
+@on_command('/pcrval')
 async def validate(session):
     global binds, lck, validate
     if session.ctx['user_id'] == acinfo['admin']:
