@@ -1,7 +1,6 @@
 {
-    "account": "",
-    "password": "",
-    "platform": 2,
-    "channel": 1,
-    "admin": 0
+    "proxy": {
+        "http": "localhost:1080",
+        "https": "localhost:1080"
+    }
 }

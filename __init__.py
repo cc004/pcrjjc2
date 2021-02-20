@@ -2,12 +2,13 @@ from json import load, dump
 from nonebot import get_bot, on_command
 from hoshino import priv
 from hoshino.typing import NoticeSession
-from .pcrclient import pcrclient, ApiException, bsdkclient
+from .pcrclient import pcrclient, ApiException
 from asyncio import Lock
 from os.path import dirname, join, exists
 from copy import deepcopy
 from traceback import format_exc
 from .safeservice import SafeService
+from .playerpref import decryptxml
 
 sv_help = '''[竞技场绑定 uid] 绑定竞技场排名变动推送，默认双场均启用，仅排名降低时推送
 [竞技场查询 (uid)] 查询竞技场简要信息
@@ -43,46 +44,15 @@ binds = root['arena_bind']
 captcha_lck = Lock()
 
 with open(join(curpath, 'account.json')) as fp:
-    acinfo = load(fp)
+    pinfo = load(fp)
 
-bot = get_bot()
-validate = None
-validating = False
-acfirst = False
+acinfo = decryptxml(join(curpath, 'tw.sonet.princessconnect.v2.playerprefs.xml'))
 
-async def captchaVerifier(gt, challenge, userid):
-    global acfirst, validating
-    if not acfirst:
-        await captcha_lck.acquire()
-        acfirst = True
-    
-    if acinfo['admin'] == 0:
-        bot.logger.error('captcha is required while admin qq is not set, so the login can\'t continue')
-    else:
-        url = f"https://help.tencentbot.top/geetest/?captcha_type=1&challenge={challenge}&gt={gt}&userid={userid}&gs=1"
-        await bot.send_private_msg(
-            user_id = acinfo['admin'],
-            message = f'pcr账号登录需要验证码，请完成以下链接中的验证内容后将第一行validate=后面的内容复制，并用指令/pcrval xxxx将内容发送给机器人完成验证\n验证链接：{url}'
-        )
-    validating = True
-    await captcha_lck.acquire()
-    validating = False
-    return validate
-
-async def errlogger(msg):
-    await bot.send_private_msg(
-        user_id = acinfo['admin'],
-        message = f'pcrjjc2登录错误：{msg}'
-    )
-
-bclient = bsdkclient(acinfo, captchaVerifier, errlogger)
-client = pcrclient(bclient)
+client = pcrclient(acinfo['UDID'], acinfo['SHORT_UDID'], acinfo['VIEWER_ID'], acinfo['TW_SERVER_ID'], pinfo['proxy'])
 
 qlck = Lock()
 
 async def query(id: str):
-    if validating:
-        raise ApiException('账号被风控，请联系管理员输入验证码并重新登录', -1)
     async with qlck:
         while client.shouldLogin:
             await client.login()
@@ -203,7 +173,7 @@ async def send_arena_sub_status(bot,ev):
     公主竞技场订阅：{'开启' if info['grand_arena_on'] else '关闭'}''',at_sender=True)
 
 
-@sv.scheduled_job('interval', minutes=1)
+@sv.scheduled_job('interval', minutes=.01)
 async def on_arena_schedule():
     global cache, binds, lck
     bot = get_bot()
