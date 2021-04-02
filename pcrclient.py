@@ -2,13 +2,12 @@ from msgpack import packb, unpackb
 from random import randint
 from hashlib import md5, sha1
 from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad, pad
 from base64 import b64encode, b64decode
 from random import choice
 
 from msgpack.exceptions import ExtraData
 from hoshino.aiorequests import post
-
-apiroot = 'https://api2-pc.so-net.tw'
 
 defaultHeaders = {
     'Accept-Encoding' : 'gzip',
@@ -54,19 +53,14 @@ class pcrclient:
             self.headers[key] = defaultHeaders[key]
 
         self.headers['SID'] = pcrclient._makemd5(viewer_id + udid)
-        self.headers['platform'] = platform
+        self.apiroot = f'https://api{platform}-pc.so-net.tw'
+        self.headers['platform'] = '4'
 
         self.shouldLogin = True
 
     @staticmethod
     def createkey() -> bytes:
         return bytes([ord('0123456789abcdef'[randint(0, 15)]) for _ in range(32)])
-    
-    @staticmethod
-    def add_to_16(b: bytes) -> bytes:
-        n = len(b) % 16
-        n = n // 16 * 16 - n + 16
-        return b + (n * bytes([n]))
 
     def _getiv(self) -> bytes:
         return self.udid.replace('-', '')[:16].encode('utf8')
@@ -76,11 +70,11 @@ class pcrclient:
         packed = packb(data,
             use_bin_type = False
         )
-        return packed, aes.encrypt(pcrclient.add_to_16(packed)) + key
+        return packed, aes.encrypt(pad(packed, 16)) + key
 
     def encrypt(self, data: str, key: bytes) -> bytes:
         aes = AES.new(key, AES.MODE_CBC, self._getiv())
-        return aes.encrypt(pcrclient.add_to_16(data.encode('utf8'))) + key
+        return aes.encrypt(pad(data.encode('utf8'), 16)) + key
 
     def decrypt(self, data: bytes):
         data = b64decode(data.decode('utf8'))
@@ -90,7 +84,7 @@ class pcrclient:
     def unpack(self, data: bytes):
         data = b64decode(data.decode('utf8'))
         aes = AES.new(data[-32:], AES.MODE_CBC, self._getiv())
-        dec = aes.decrypt(data[:-32])
+        dec = unpad(aes.decrypt(data[:-32]), 16)
         return unpackb(dec,
             strict_map_key = False
         ), data[-32:]
@@ -116,7 +110,7 @@ class pcrclient:
             self.headers['PARAM'] = sha1((self.udid + apiurl + b64encode(packed).decode('utf8') + str(self.viewer_id)).encode('utf8')).hexdigest()
             self.headers['SHORT-UDID'] = pcrclient._encode(self.short_udid)
 
-            resp = await post(apiroot + apiurl,
+            resp = await post(self.apiroot + apiurl,
                 data = crypted,
                 headers = self.headers,
                 timeout = 5,
@@ -137,7 +131,8 @@ class pcrclient:
             data = response['data']
             if not noerr and 'server_error' in data:
                 data = data['server_error']
-                print(f'pcrclient: {apiurl} api failed {data}')
+                code = data_headers['result_code']
+                print(f'pcrclient: {apiurl} api failed code = {code}, {data}')
                 raise ApiException(data['message'], data['status'])
 
             print(f'pcrclient: {apiurl} api called')
@@ -155,5 +150,3 @@ class pcrclient:
         })
 
         self.shouldLogin = False
-
-
