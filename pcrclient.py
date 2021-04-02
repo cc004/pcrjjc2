@@ -54,7 +54,7 @@ class pcrclient:
 
         self.headers['SID'] = pcrclient._makemd5(viewer_id + udid)
         self.apiroot = f'https://api{platform}-pc.so-net.tw'
-        self.headers['platform'] = '4'
+        self.headers['platform'] = platform
 
         self.shouldLogin = True
 
