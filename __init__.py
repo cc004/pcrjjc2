@@ -100,7 +100,7 @@ async def on_arena_bind(bot, ev):
     global binds, lck
 
     async with lck:
-        uid = str(ev['user_id']) if ev['match'].group(2) is None else ev['match'].group(2)
+        uid = str(ev['user_id']) if ev['match'].group(2) is None else if not priv.check_priv(ev, priv.ADMIN): await bot.finish(ev, '添加他人订阅只能由群管理员操作。', at_sender=True) else ev['match'].group(2)
         last = binds[uid] if uid in binds else None
 
         binds[uid] = {
