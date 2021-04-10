@@ -95,18 +95,18 @@ def save_binds():
     with open(config, 'w') as fp:
         dump(root, fp, indent=4)
 
-@sv.on_rex(r'^竞技场绑定 ?(\d{13}) (\d{5,10})$')
+@sv.on_rex(r'^竞技场绑定 ?(\d{13}) ?(\d{5,10})?$')
 async def on_arena_bind(bot, ev):
     global binds, lck
 
     async with lck:
-        uid = str(ev['user_id'])
+        uid = str(ev['user_id']) if ev['match'].group(2) is None else ev['match'].group(2)
         last = binds[uid] if uid in binds else None
 
         binds[uid] = {
             'id': ev['match'].group(1),
             'uid': uid,
-            'gid': str(ev['group_id']) if ev['match'].group(2) is None else ev['match'].group(2),
+            'gid': str(ev['group_id']),
             'arena_on': last is None or last['arena_on'],
             'grand_arena_on': last is None or last['grand_arena_on'],
         }
