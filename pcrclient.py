@@ -17,9 +17,9 @@ apiroot = 'http://l3-prod-all-gs-gzlj.bilibiligame.net'
 defaultHeaders = {
     'Accept-Encoding' : 'gzip',
     'User-Agent' : 'Dalvik/2.1.0 (Linux, U, Android 5.1.1, PCRT00 Build/LMY48Z)',
-    'X-Unity-Version' : '2017.4.37c2',
+    'X-Unity-Version' : '2018.4.30f1',
     'APP-VER' : '3.4.5',
-    'BATTLE-LOGIC-VERSION' : '3',
+    'BATTLE-LOGIC-VERSION' : '4',
     'BUNDLE-VER' : '',
     'DEVICE' : '2',
     'DEVICE-ID' : '7b1703a5d9b394e24051d7a5d4818f17',
