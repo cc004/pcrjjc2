@@ -36,5 +36,3 @@ def decryptxml(filename):
         #except:
         #    pass
     return result
-
-decryptxml('D:\\pro\\csharp\\PCRApi\\PCRPrefReader\\bin\\Debug\\tw.sonet.princessconnect.v2.playerprefs.xml')
