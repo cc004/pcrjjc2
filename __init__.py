@@ -252,7 +252,7 @@ async def on_arena_schedule():
 
 @sv.on_notice('group_decrease.leave')
 async def leave_notice(session: NoticeSession):
-    global lck, bind
+    global lck, binds
     uid = str(session.ctx['user_id'])
     
     async with lck:
