@@ -9,6 +9,7 @@ from copy import deepcopy
 from traceback import format_exc
 from .safeservice import SafeService
 from .playerpref import decryptxml
+import time
 
 sv_help = '''[竞技场绑定 uid] 绑定竞技场排名变动推送，默认双场均启用，仅排名降低时推送
 [竞技场查询 (uid)] 查询竞技场简要信息
@@ -17,13 +18,18 @@ sv_help = '''[竞技场绑定 uid] 绑定竞技场排名变动推送，默认双
 [启用竞技场订阅] 启用战斗竞技场排名变动推送
 [启用公主竞技场订阅] 启用公主竞技场排名变动推送
 [删除竞技场订阅] 删除竞技场排名变动推送绑定
-[竞技场订阅状态] 查看排名变动推送绑定状态'''
+[竞技场订阅状态] 查看排名变动推送绑定状态
+[详细查询 (uid)] 查询详细状态'''
 
 sv = SafeService('竞技场推送',help_=sv_help, bundle='pcr查询')
 
-@sv.on_fullmatch('jjc帮助', only_to_me=False)
+@sv.on_fullmatch('竞技场帮助', only_to_me=False)
 async def send_jjchelp(bot, ev):
-    await bot.send(ev, sv_help)
+    self_ids = bot._wsr_api_clients.keys()
+    for sid in self_ids:
+        gl = await bot.get_group_list(self_id=sid)
+        msg = f"本Bot目前服务群数目{len(gl)}"
+    await bot.send(ev, f'{sv_help}\n{msg}')
 
 curpath = dirname(__file__)
 config = join(curpath, 'binds.json')
@@ -61,11 +67,20 @@ async def query(id: str):
             }))['user_info']
         return res
 
+async def arena_query(id: str):
+    async with qlck:
+        while client.shouldLogin:
+            await client.login()
+        res = (await client.callapi('/profile/get_profile', {
+                'target_viewer_id': int(id)
+            }))
+        return res
+
 def save_binds():
     with open(config, 'w') as fp:
         dump(root, fp, indent=4)
 
-@sv.on_rex(r'^竞技场绑定 ?(\d{13})$')
+@sv.on_rex(r'^竞技场绑定 ?(\d{9})$')
 async def on_arena_bind(bot, ev):
     global binds, lck
 
@@ -84,7 +99,7 @@ async def on_arena_bind(bot, ev):
 
     await bot.finish(ev, '竞技场绑定成功', at_sender=True)
 
-@sv.on_rex(r'^竞技场查询 ?(\d{13})?$')
+@sv.on_rex(r'^竞技场查询 ?(\d{9})?$')
 async def on_query_arena(bot, ev):
     global binds, lck
 
@@ -103,11 +118,53 @@ async def on_query_arena(bot, ev):
             res = await query(id)
             await bot.finish(ev, 
 f'''
-竞技场排名：{res["arena_rank"]}
-公主竞技场排名：{res["grand_arena_rank"]}''', at_sender=True)
+jjc：{res["arena_rank"]}
+pjjc：{res["grand_arena_rank"]}''', at_sender=True)
         except ApiException as e:
             await bot.finish(ev, f'查询出错，{e}', at_sender=True)
 
+@sv.on_rex(r'^详细查询 ?(\d{9})?$')
+async def on_query_arena_all(bot, ev):
+    global binds, lck
+
+    robj = ev['match']
+    id = robj.group(1)
+
+    async with lck:
+        if id == None:
+            uid = str(ev['user_id'])
+            if not uid in binds:
+                return
+            else:
+                id = binds[uid]['id']
+        try:
+            res = await arena_query(id)
+            arena_time = int (res['user_info']['arena_time'])
+            arena_date = time.localtime(arena_time)
+            arena_str = time.strftime('%Y-%m-%d',arena_date)
+
+            grand_arena_time = int (res['user_info']['grand_arena_time'])
+            grand_arena_date = time.localtime(grand_arena_time)
+            grand_arena_str = time.strftime('%Y-%m-%d',grand_arena_date)
+            
+            await bot.finish(ev, 
+f'''
+id：{res['user_info']["viewer_id"]}
+昵称：{res['user_info']["user_name"]}
+公会：{res['clan_name']}
+简介：{res['user_info']["user_comment"]}
+jjc：{res['user_info']["arena_rank"]}
+pjjc：{res['user_info']["grand_arena_rank"]}
+战力：{res['user_info']["total_power"]}
+等级：{res['user_info']["team_level"]}
+jjc场次：{res['user_info']["arena_group"]}
+jjc创建日：{arena_str}
+pjjc场次：{res['user_info']["grand_arena_group"]}
+pjjc创建日：{grand_arena_str}
+角色数：{res['user_info']["unit_num"]}
+''', at_sender=True)
+        except ApiException as e:
+            await bot.finish(ev, f'查询出错，{e}', at_sender=True)
 
 @sv.on_rex('(启用|停止)(公主)?竞技场订阅')
 async def change_arena_sub(bot, ev):
@@ -201,13 +258,13 @@ async def on_arena_schedule():
             if res[0] > last[0] and info['arena_on']:
                 await bot.send_group_msg(
                     group_id = int(info['gid']),
-                    message = f'[CQ:at,qq={info["uid"]}]您的竞技场排名发生变化：{last[0]}->{res[0]}，降低了{res[0]-last[0]}名。'
+                    message = f'[CQ:at,qq={info["uid"]}]jjc：{last[0]}->{res[0]} ▼{res[0]-last[0]}'
                 )
 
             if res[1] > last[1] and info['grand_arena_on']:
                 await bot.send_group_msg(
                     group_id = int(info['gid']),
-                    message = f'[CQ:at,qq={info["uid"]}]您的公主竞技场排名发生变化：{last[1]}->{res[1]}，降低了{res[1]-last[1]}名。'
+                    message = f'[CQ:at,qq={info["uid"]}]pjjc：{last[1]}->{res[1]} ▼{res[1]-last[1]}'
                 )
         except ApiException as e:
             sv.logger.info(f'对{info["id"]}的检查出错\n{format_exc()}')
