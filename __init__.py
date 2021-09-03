@@ -246,7 +246,7 @@ async def on_arena_schedule():
         try:
             sv.logger.info(f'querying {info["id"]} for {info["uid"]}')
             res = await query(info['id'])
-            res = (res['arena_rank'], res['grand_arena_rank'])
+            res = (res['user_info']['arena_rank'], res['user_info']['grand_arena_rank'])
 
             if user not in cache:
                 cache[user] = res
