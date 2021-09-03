@@ -64,15 +64,6 @@ async def query(id: str):
             await client.login()
         res = (await client.callapi('/profile/get_profile', {
                 'target_viewer_id': int(id)
-            }))['user_info']
-        return res
-
-async def arena_query(id: str):
-    async with qlck:
-        while client.shouldLogin:
-            await client.login()
-        res = (await client.callapi('/profile/get_profile', {
-                'target_viewer_id': int(id)
             }))
         return res
 
@@ -116,10 +107,17 @@ async def on_query_arena(bot, ev):
                 id = binds[uid]['id']
         try:
             res = await query(id)
+            
+            last_login_time = int (res['user_info']['last_login_time'])
+            last_login_date = time.localtime(last_login_time)
+            last_login_str = time.strftime('%Y-%m-%d %H:%M:%S',last_login_date)
+            
             await bot.finish(ev, 
-f'''
-jjc：{res["arena_rank"]}
-pjjc：{res["grand_arena_rank"]}''', at_sender=True)
+f'''昵称：{res['user_info']["user_name"]}
+jjc：{res['user_info']["arena_rank"]}
+pjjc：{res['user_info']["grand_arena_rank"]}
+最后登录：{last_login_str}
+''', at_sender=False)
         except ApiException as e:
             await bot.finish(ev, f'查询出错，{e}', at_sender=True)
 
@@ -138,7 +136,7 @@ async def on_query_arena_all(bot, ev):
             else:
                 id = binds[uid]['id']
         try:
-            res = await arena_query(id)
+            res = await query(id)
             arena_time = int (res['user_info']['arena_time'])
             arena_date = time.localtime(arena_time)
             arena_str = time.strftime('%Y-%m-%d',arena_date)
@@ -147,12 +145,16 @@ async def on_query_arena_all(bot, ev):
             grand_arena_date = time.localtime(grand_arena_time)
             grand_arena_str = time.strftime('%Y-%m-%d',grand_arena_date)
             
+            last_login_time = int (res['user_info']['last_login_time'])
+            last_login_date = time.localtime(last_login_time)
+            last_login_str = time.strftime('%Y-%m-%d %H:%M:%S',last_login_date)
+            
             await bot.finish(ev, 
-f'''
-id：{res['user_info']["viewer_id"]}
+f'''id：{res['user_info']["viewer_id"]}
 昵称：{res['user_info']["user_name"]}
 公会：{res['clan_name']}
 简介：{res['user_info']["user_comment"]}
+最后登录：{last_login_str}
 jjc：{res['user_info']["arena_rank"]}
 pjjc：{res['user_info']["grand_arena_rank"]}
 战力：{res['user_info']["total_power"]}
@@ -162,7 +164,7 @@ jjc创建日：{arena_str}
 pjjc场次：{res['user_info']["grand_arena_group"]}
 pjjc创建日：{grand_arena_str}
 角色数：{res['user_info']["unit_num"]}
-''', at_sender=True)
+''', at_sender=False)
         except ApiException as e:
             await bot.finish(ev, f'查询出错，{e}', at_sender=True)
 
@@ -181,7 +183,7 @@ async def change_arena_sub(bot, ev):
             save_binds()
             await bot.finish(ev, f'{ev["match"].group(0)}成功', at_sender=True)
 
-@on_command('/pcrval')
+# @on_command('/pcrval')
 async def validate(session):
     global binds, lck, validate
     if session.ctx['user_id'] == acinfo['admin']:
