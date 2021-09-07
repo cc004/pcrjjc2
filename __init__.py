@@ -96,7 +96,8 @@ async def query(id: str):
                 'target_viewer_id': int(id)
             }))
         return res
-
+# 如需查看所有输出数据，需要将return res改为print (res)，然后在qq发送 竞技场查询，最后在终端查看详细输出数据。
+    
 def save_binds():
     with open(config, 'w') as fp:
         dump(root, fp, indent=4)
@@ -262,7 +263,7 @@ async def send_arena_sub_status(bot,ev):
     公主竞技场订阅：{'开启' if info['grand_arena_on'] else '关闭'}''',at_sender=True)
 
 
-@sv.scheduled_job('interval', minutes=1)
+@sv.scheduled_job('interval', minutes=1) # minutes是刷新频率，可按自身服务器性能输入其他数值，可支持整数、小数
 async def on_arena_schedule():
     global cache, binds, lck
     bot = get_bot()
