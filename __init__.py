@@ -66,7 +66,8 @@ async def query(id: str):
                 'target_viewer_id': int(id)
             }))
         return res
-
+# 如需查看所有输出数据，需要将return res改为print (res)，然后在qq发送 竞技场查询，最后在终端查看详细输出数据。
+    
 def save_binds():
     with open(config, 'w') as fp:
         dump(root, fp, indent=4)
@@ -132,6 +133,7 @@ async def on_query_arena_all(bot, ev):
         if id == None:
             uid = str(ev['user_id'])
             if not uid in binds:
+                await bot.finish(ev, '您还未绑定竞技场', at_sender=True)
                 return
             else:
                 id = binds[uid]['id']
@@ -183,7 +185,7 @@ async def change_arena_sub(bot, ev):
             save_binds()
             await bot.finish(ev, f'{ev["match"].group(0)}成功', at_sender=True)
 
-# @on_command('/pcrval')
+# @on_command('/pcrval') # 台服建议注释掉该命令，以防止与b服的验证码输入产生冲突，导致验证码输入无响应。
 async def validate(session):
     global binds, lck, validate
     if session.ctx['user_id'] == acinfo['admin']:
@@ -232,7 +234,7 @@ async def send_arena_sub_status(bot,ev):
     公主竞技场订阅：{'开启' if info['grand_arena_on'] else '关闭'}''',at_sender=True)
 
 
-@sv.scheduled_job('interval', minutes=1)
+@sv.scheduled_job('interval', minutes=1) # minutes是刷新频率，可按自身服务器性能输入其他数值，可支持整数、小数
 async def on_arena_schedule():
     global cache, binds, lck
     bot = get_bot()
