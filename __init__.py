@@ -8,6 +8,7 @@ from os.path import dirname, join, exists
 from copy import deepcopy
 from traceback import format_exc
 from .safeservice import SafeService
+import time
 
 sv_help = '''[竞技场绑定 uid] 绑定竞技场排名变动推送，默认双场均启用
 [竞技场查询 (uid)] 查询竞技场简要信息
@@ -16,13 +17,18 @@ sv_help = '''[竞技场绑定 uid] 绑定竞技场排名变动推送，默认双
 [启用竞技场订阅] 启用战斗竞技场排名变动推送
 [启用公主竞技场订阅] 启用公主竞技场排名变动推送
 [删除竞技场订阅] 删除竞技场排名变动推送绑定
-[竞技场订阅状态] 查看排名变动推送绑定状态'''
+[竞技场订阅状态] 查看排名变动推送绑定状态
+[详细查询 (uid)] 查询详细状态'''
 
 sv = SafeService('竞技场推送',help_=sv_help, bundle='pcr查询')
 
-@sv.on_fullmatch('jjc帮助', only_to_me=False)
+@sv.on_fullmatch('竞技场帮助', only_to_me=False)
 async def send_jjchelp(bot, ev):
-    await bot.send(ev, sv_help)
+    self_ids = bot._wsr_api_clients.keys()
+    for sid in self_ids:
+        gl = await bot.get_group_list(self_id=sid)
+        msg = f"本Bot目前服务群数目{len(gl)}"
+    await bot.send(ev, f'{sv_help}\n{msg}')
 
 curpath = dirname(__file__)
 config = join(curpath, 'binds.json')
@@ -88,9 +94,10 @@ async def query(id: str):
             await client.login()
         res = (await client.callapi('/profile/get_profile', {
                 'target_viewer_id': int(id)
-            }))['user_info']
+            }))
         return res
-
+# 如需查看所有输出数据，需要将return res改为print (res)，然后在qq发送 竞技场查询，最后在终端查看详细输出数据。
+    
 def save_binds():
     with open(config, 'w') as fp:
         dump(root, fp, indent=4)
@@ -131,13 +138,66 @@ async def on_query_arena(bot, ev):
                 id = binds[uid]['id']
         try:
             res = await query(id)
+            
+            last_login_time = int (res['user_info']['last_login_time'])
+            last_login_date = time.localtime(last_login_time)
+            last_login_str = time.strftime('%Y-%m-%d %H:%M:%S',last_login_date)
+            
             await bot.finish(ev, 
-f'''
-竞技场排名：{res["arena_rank"]}
-公主竞技场排名：{res["grand_arena_rank"]}''', at_sender=True)
+f'''昵称：{res['user_info']["user_name"]}
+jjc：{res['user_info']["arena_rank"]}
+pjjc：{res['user_info']["grand_arena_rank"]}
+最后登录：{last_login_str}''', at_sender=False)
         except ApiException as e:
             await bot.finish(ev, f'查询出错，{e}', at_sender=True)
 
+@sv.on_rex(r'^详细查询 ?(\d{13})?$')
+async def on_query_arena_all(bot, ev):
+    global binds, lck
+
+    robj = ev['match']
+    id = robj.group(1)
+
+    async with lck:
+        if id == None:
+            uid = str(ev['user_id'])
+            if not uid in binds:
+                await bot.finish(ev, '您还未绑定竞技场', at_sender=True)
+                return
+            else:
+                id = binds[uid]['id']
+        try:
+            res = await query(id)
+            arena_time = int (res['user_info']['arena_time'])
+            arena_date = time.localtime(arena_time)
+            arena_str = time.strftime('%Y-%m-%d',arena_date)
+
+            grand_arena_time = int (res['user_info']['grand_arena_time'])
+            grand_arena_date = time.localtime(grand_arena_time)
+            grand_arena_str = time.strftime('%Y-%m-%d',grand_arena_date)
+            
+            last_login_time = int (res['user_info']['last_login_time'])
+            last_login_date = time.localtime(last_login_time)
+            last_login_str = time.strftime('%Y-%m-%d %H:%M:%S',last_login_date)
+            
+            await bot.finish(ev, 
+f'''id：{res['user_info']["viewer_id"]}
+昵称：{res['user_info']["user_name"]}
+公会：{res["clan_name"]}
+简介：{res['user_info']["user_comment"]}
+最后登录：{last_login_str}
+jjc：{res['user_info']["arena_rank"]}
+pjjc：{res['user_info']["grand_arena_rank"]}
+战力：{res['user_info']["total_power"]}
+等级：{res['user_info']["team_level"]}
+jjc场次：{res['user_info']["arena_group"]}
+jjc创建日：{arena_str}
+pjjc场次：{res['user_info']["grand_arena_group"]}
+pjjc创建日：{grand_arena_str}
+角色数：{res['user_info']["unit_num"]}
+''', at_sender=False)
+        except ApiException as e:
+            await bot.finish(ev, f'查询出错，{e}', at_sender=True)
 
 @sv.on_rex('(启用|停止)(公主)?竞技场订阅')
 async def change_arena_sub(bot, ev):
@@ -203,7 +263,7 @@ async def send_arena_sub_status(bot,ev):
     公主竞技场订阅：{'开启' if info['grand_arena_on'] else '关闭'}''',at_sender=True)
 
 
-@sv.scheduled_job('interval', minutes=1)
+@sv.scheduled_job('interval', minutes=1) # minutes是刷新频率，可按自身服务器性能输入其他数值，可支持整数、小数
 async def on_arena_schedule():
     global cache, binds, lck
     bot = get_bot()
@@ -219,7 +279,7 @@ async def on_arena_schedule():
         try:
             sv.logger.info(f'querying {info["id"]} for {info["uid"]}')
             res = await query(info['id'])
-            res = (res['arena_rank'], res['grand_arena_rank'])
+            res = (res['user_info']['arena_rank'], res['user_info']['grand_arena_rank'])
 
             if user not in cache:
                 cache[user] = res
@@ -231,13 +291,13 @@ async def on_arena_schedule():
             if res[0] != last[0] and info['arena_on']:
                 await bot.send_group_msg(
                     group_id = int(info['gid']),
-                    message = f'[CQ:at,qq={info["uid"]}]您的竞技场排名发生变化：{last[0]}->{res[0]}'
+                    message = f'[CQ:at,qq={info["uid"]}]jjc：{last[0]}->{res[0]}'
                 )
 
             if res[1] != last[1] and info['grand_arena_on']:
                 await bot.send_group_msg(
                     group_id = int(info['gid']),
-                    message = f'[CQ:at,qq={info["uid"]}]您的公主竞技场排名发生变化：{last[1]}->{res[1]}'
+                    message = f'[CQ:at,qq={info["uid"]}]pjjc：{last[1]}->{res[1]}'
                 )
         except ApiException as e:
             sv.logger.info(f'对{info["id"]}的检查出错\n{format_exc()}')
