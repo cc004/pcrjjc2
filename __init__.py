@@ -11,7 +11,8 @@ from .safeservice import SafeService
 from .playerpref import decryptxml
 import time
 
-sv_help = '''[竞技场绑定 uid] 绑定竞技场排名变动推送，默认双场均启用，仅排名降低时推送
+sv_help = '''
+[竞技场绑定 uid] 绑定竞技场排名变动推送，默认双场均启用，仅排名降低时推送
 [竞技场查询 (uid)] 查询竞技场简要信息
 [停止竞技场订阅] 停止战斗竞技场排名变动推送
 [停止公主竞技场订阅] 停止公主竞技场排名变动推送
@@ -19,17 +20,25 @@ sv_help = '''[竞技场绑定 uid] 绑定竞技场排名变动推送，默认双
 [启用公主竞技场订阅] 启用公主竞技场排名变动推送
 [删除竞技场订阅] 删除竞技场排名变动推送绑定
 [竞技场订阅状态] 查看排名变动推送绑定状态
-[详细查询 (uid)] 查询详细状态'''
+[详细查询 (uid)] 查询账号详细状态
+[查询群数] 查询bot所在群的数目
+[查询竞技场订阅数] 查询绑定账号的总数量
+[清空竞技场订阅] 清空所有绑定的账号(仅限主人)
+'''.strip()
 
-sv = SafeService('竞技场推送',help_=sv_help, bundle='pcr查询')
+sv = SafeService('竞技场推送_tw', help_=sv_help, bundle='pcr查询')
 
 @sv.on_fullmatch('竞技场帮助', only_to_me=False)
 async def send_jjchelp(bot, ev):
+    await bot.send(ev, f'{sv_help}')
+
+@sv.on_fullmatch('查询群数', only_to_me=False)
+async def group_num(bot, ev):
     self_ids = bot._wsr_api_clients.keys()
     for sid in self_ids:
         gl = await bot.get_group_list(self_id=sid)
-        msg = f"本Bot目前服务群数目{len(gl)}"
-    await bot.send(ev, f'{sv_help}\n{msg}')
+        msg = f"本Bot目前正在为【{len(gl)}】个群服务"
+    await bot.send(ev, f'{msg}')
 
 curpath = dirname(__file__)
 config = join(curpath, 'binds.json')
@@ -66,11 +75,31 @@ async def query(id: str):
                 'target_viewer_id': int(id)
             }))
         return res
-# 如需查看所有输出数据，需要将return res改为print (res)，然后在qq发送 竞技场查询，最后在终端查看详细输出数据。
-    
+
 def save_binds():
     with open(config, 'w') as fp:
         dump(root, fp, indent=4)
+
+@sv.on_fullmatch('查询竞技场订阅数', only_to_me=False)
+async def pcrjjc_number(bot, ev):
+    global binds, lck
+
+    async with lck:
+        await bot.send(ev, f'当前竞技场已订阅的账号数量为【{len(binds)}】个')
+
+@sv.on_fullmatch('清空竞技场订阅', only_to_me=False)
+async def pcrjjc_del(bot, ev):
+    global binds, lck
+
+    async with lck:
+        if not priv.check_priv(ev, priv.SUPERUSER):
+            await bot.send(ev, '抱歉，您的权限不足，只有bot主人才能进行该操作！')
+            return
+        else:
+            num = len(binds)
+            binds.clear()
+            save_binds()
+            await bot.send(ev, f'已清空全部【{num}】个已订阅账号！')
 
 @sv.on_rex(r'^竞技场绑定 ?(\d{9})$')
 async def on_arena_bind(bot, ev):
@@ -185,7 +214,7 @@ async def change_arena_sub(bot, ev):
             save_binds()
             await bot.finish(ev, f'{ev["match"].group(0)}成功', at_sender=True)
 
-# @on_command('/pcrval') # 台服建议注释掉该命令，以防止与b服的验证码输入产生冲突，导致验证码输入无响应。
+# @on_command('/pcrval')
 async def validate(session):
     global binds, lck, validate
     if session.ctx['user_id'] == acinfo['admin']:
@@ -234,7 +263,7 @@ async def send_arena_sub_status(bot,ev):
     公主竞技场订阅：{'开启' if info['grand_arena_on'] else '关闭'}''',at_sender=True)
 
 
-@sv.scheduled_job('interval', minutes=1) # minutes是刷新频率，可按自身服务器性能输入其他数值，可支持整数、小数
+@sv.scheduled_job('interval', minutes=2)
 async def on_arena_schedule():
     global cache, binds, lck
     bot = get_bot()
