@@ -10,7 +10,8 @@ from traceback import format_exc
 from .safeservice import SafeService
 import time
 
-sv_help = '''[竞技场绑定 uid] 绑定竞技场排名变动推送，默认双场均启用，仅排名降低时推送
+sv_help = '''
+[竞技场绑定 uid] 绑定竞技场排名变动推送，默认双场均启用，仅排名降低时推送
 [竞技场查询 (uid)] 查询竞技场简要信息
 [停止竞技场订阅] 停止战斗竞技场排名变动推送
 [停止公主竞技场订阅] 停止公主竞技场排名变动推送
@@ -18,17 +19,25 @@ sv_help = '''[竞技场绑定 uid] 绑定竞技场排名变动推送，默认双
 [启用公主竞技场订阅] 启用公主竞技场排名变动推送
 [删除竞技场订阅] 删除竞技场排名变动推送绑定
 [竞技场订阅状态] 查看排名变动推送绑定状态
-[详细查询 (uid)] 查询详细状态'''
+[详细查询 (uid)] 查询详细状态
+[查询群数] 查询bot所在群的数目
+[查询竞技场订阅数] 查询绑定账号的总数量
+[清空竞技场订阅] 清空所有绑定的账号(仅限主人)
+'''.strip()
 
 sv = SafeService('竞技场推送',help_=sv_help, bundle='pcr查询')
 
 @sv.on_fullmatch('竞技场帮助', only_to_me=False)
 async def send_jjchelp(bot, ev):
+    await bot.send(ev, f'{sv_help}')
+
+@sv.on_fullmatch('查询群数', only_to_me=False)
+async def group_num(bot, ev):
     self_ids = bot._wsr_api_clients.keys()
     for sid in self_ids:
         gl = await bot.get_group_list(self_id=sid)
-        msg = f"本Bot目前服务群数目{len(gl)}"
-    await bot.send(ev, f'{sv_help}\n{msg}')
+        msg = f"本Bot目前正在为【{len(gl)}】个群服务"
+    await bot.send(ev, f'{msg}')
 
 curpath = dirname(__file__)
 config = join(curpath, 'binds.json')
@@ -101,6 +110,27 @@ async def query(id: str):
 def save_binds():
     with open(config, 'w') as fp:
         dump(root, fp, indent=4)
+
+@sv.on_fullmatch('查询竞技场订阅数', only_to_me=False)
+async def pcrjjc_number(bot, ev):
+    global binds, lck
+
+    async with lck:
+        await bot.send(ev, f'当前竞技场已订阅的账号数量为【{len(binds)}】个')
+
+@sv.on_fullmatch('清空竞技场订阅', only_to_me=False)
+async def pcrjjc_del(bot, ev):
+    global binds, lck
+
+    async with lck:
+        if not priv.check_priv(ev, priv.SUPERUSER):
+            await bot.send(ev, '抱歉，您的权限不足，只有bot主人才能进行该操作！')
+            return
+        else:
+            num = len(binds)
+            binds.clear()
+            save_binds()
+            await bot.send(ev, f'已清空全部【{num}】个已订阅账号！')
 
 @sv.on_rex(r'^竞技场绑定 ?(\d{13})$')
 async def on_arena_bind(bot, ev):
