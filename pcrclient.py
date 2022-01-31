@@ -15,7 +15,7 @@ defaultHeaders = {
     'Content-Type': 'application/octet-stream',
     'Expect': '100-continue',
     'X-Unity-Version' : '2018.4.21f1',
-    'APP-VER' : '2.9.0',
+    'APP-VER' : '3.1.0',
     'BATTLE-LOGIC-VERSION' : '4',
     'BUNDLE-VER' : '',
     'DEVICE' : '2',
