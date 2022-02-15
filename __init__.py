@@ -8,6 +8,7 @@ from os.path import dirname, join, exists
 from copy import deepcopy
 from traceback import format_exc
 from .safeservice import SafeService
+from ..priconne import chara
 import time
 
 sv_help = '''
@@ -19,7 +20,7 @@ sv_help = '''
 [启用公主竞技场订阅] 启用公主竞技场排名变动推送
 [删除竞技场订阅] 删除竞技场排名变动推送绑定
 [竞技场订阅状态] 查看排名变动推送绑定状态
-[详细查询 (uid)] 查询详细状态
+[详细查询 (uid)] 查询账号详细信息
 [查询群数] 查询bot所在群的数目
 [查询竞技场订阅数] 查询绑定账号的总数量
 [清空竞技场订阅] 清空所有绑定的账号(仅限主人)
@@ -175,8 +176,8 @@ async def on_query_arena(bot, ev):
             
             await bot.finish(ev, 
 f'''昵称：{res['user_info']["user_name"]}
-jjc：{res['user_info']["arena_rank"]}
-pjjc：{res['user_info']["grand_arena_rank"]}
+jjc排名：{res['user_info']["arena_rank"]}
+pjjc排名：{res['user_info']["grand_arena_rank"]}
 最后登录：{last_login_str}''', at_sender=False)
         except ApiException as e:
             await bot.finish(ev, f'查询出错，{e}', at_sender=True)
@@ -210,21 +211,73 @@ async def on_query_arena_all(bot, ev):
             last_login_date = time.localtime(last_login_time)
             last_login_str = time.strftime('%Y-%m-%d %H:%M:%S',last_login_date)
             
+            # 获取支援角色信息，若玩家未设置则留空
+            try:    
+                id_favorite = int(str(res['favorite_unit']['id'])[0:4]) # 截取第1位到第4位的字符
+                c_favorite = chara.fromid(id_favorite)
+                msg_f = f'{c_favorite.name}{c_favorite.icon.cqcode}'
+            except IndexError:
+                msg_f = ''
+            try:
+                id_friend_support1 = int(str(res['friend_support_units'][0]['unit_data']['id'])[0:4])
+                c_friend_support1 = chara.fromid(id_friend_support1)
+                msg_fr1 = f'{c_friend_support1.name}{c_friend_support1.icon.cqcode}'
+            except IndexError:
+                msg_fr1 = ''
+            try:
+                id_friend_support2 = int(str(res['friend_support_units'][1]['unit_data']['id'])[0:4])
+                c_friend_support2 = chara.fromid(id_friend_support2)
+                msg_fr2 = f'{c_friend_support2.name}{c_friend_support2.icon.cqcode}'
+            except IndexError:
+                msg_fr2 = ''
+            try:
+                id_clan_support1 = int(str(res['clan_support_units'][0]['unit_data']['id'])[0:4])
+                c_clan_support1 = chara.fromid(id_clan_support1)
+                msg_cl1 = f'{c_clan_support1.name}{c_clan_support1.icon.cqcode}'
+            except IndexError:
+                msg_cl1 = ''
+            try:
+                id_clan_support2 = int(str(res['clan_support_units'][1]['unit_data']['id'])[0:4])
+                c_clan_support2 = chara.fromid(id_clan_support2)
+                msg_cl2 = f'{c_clan_support2.name}{c_clan_support2.icon.cqcode}'
+            except IndexError:
+                msg_cl2 = ''
+            try:
+                id_clan_support3 = int(str(res['clan_support_units'][2]['unit_data']['id'])[0:4])
+                c_clan_support3 = chara.fromid(id_clan_support3)
+                msg_cl3 = f'{c_clan_support3.name}{c_clan_support3.icon.cqcode}'
+            except IndexError:
+                msg_cl3 = ''
+            try:
+                id_clan_support4 = int(str(res['clan_support_units'][3]['unit_data']['id'])[0:4])
+                c_clan_support4 = chara.fromid(id_clan_support4)
+                msg_cl4 = f'{c_clan_support4.name}{c_clan_support4.icon.cqcode}'
+            except IndexError:
+                msg_cl4 = ''
+            
             await bot.finish(ev, 
-f'''id：{res['user_info']["viewer_id"]}
-昵称：{res['user_info']["user_name"]}
-公会：{res["clan_name"]}
-简介：{res['user_info']["user_comment"]}
+f'''id：{res['user_info']['viewer_id']}
+昵称：{res['user_info']['user_name']}
+公会：{res['clan_name']}
+简介：{res['user_info']['user_comment']}
 最后登录：{last_login_str}
-jjc：{res['user_info']["arena_rank"]}
-pjjc：{res['user_info']["grand_arena_rank"]}
-战力：{res['user_info']["total_power"]}
-等级：{res['user_info']["team_level"]}
-jjc场次：{res['user_info']["arena_group"]}
+jjc排名：{res['user_info']['arena_rank']}
+pjjc排名：{res['user_info']['grand_arena_rank']}
+战力：{res['user_info']['total_power']}
+等级：{res['user_info']['team_level']}
+jjc场次：{res['user_info']['arena_group']}
 jjc创建日：{arena_str}
-pjjc场次：{res['user_info']["grand_arena_group"]}
+pjjc场次：{res['user_info']['grand_arena_group']}
 pjjc创建日：{grand_arena_str}
-角色数：{res['user_info']["unit_num"]}
+角色数：{res['user_info']['unit_num']}
+【最爱的角色】
+{msg_f}
+【好友支援角色】
+{msg_fr1}{msg_fr2}
+【地下城支援角色】
+{msg_cl1}{msg_cl2}
+【战队支援角色】
+{msg_cl3}{msg_cl4}
 ''', at_sender=False)
         except ApiException as e:
             await bot.finish(ev, f'查询出错，{e}', at_sender=True)
