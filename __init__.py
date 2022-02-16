@@ -187,43 +187,43 @@ async def on_query_arena_all(bot, ev):
                 id_favorite = int(str(res['favorite_unit']['id'])[0:4]) # 截取第1位到第4位的字符
                 c_favorite = chara.fromid(id_favorite)
                 msg_f = f'{c_favorite.name}{c_favorite.icon.cqcode}'
-            except IndexError:
+            except:
                 msg_f = ''
             try:
                 id_friend_support1 = int(str(res['friend_support_units'][0]['unit_data']['id'])[0:4])
                 c_friend_support1 = chara.fromid(id_friend_support1)
                 msg_fr1 = f'{c_friend_support1.name}{c_friend_support1.icon.cqcode}'
-            except IndexError:
+            except:
                 msg_fr1 = ''
             try:
                 id_friend_support2 = int(str(res['friend_support_units'][1]['unit_data']['id'])[0:4])
                 c_friend_support2 = chara.fromid(id_friend_support2)
                 msg_fr2 = f'{c_friend_support2.name}{c_friend_support2.icon.cqcode}'
-            except IndexError:
+            except:
                 msg_fr2 = ''
             try:
                 id_clan_support1 = int(str(res['clan_support_units'][0]['unit_data']['id'])[0:4])
                 c_clan_support1 = chara.fromid(id_clan_support1)
                 msg_cl1 = f'{c_clan_support1.name}{c_clan_support1.icon.cqcode}'
-            except IndexError:
+            except:
                 msg_cl1 = ''
             try:
                 id_clan_support2 = int(str(res['clan_support_units'][1]['unit_data']['id'])[0:4])
                 c_clan_support2 = chara.fromid(id_clan_support2)
                 msg_cl2 = f'{c_clan_support2.name}{c_clan_support2.icon.cqcode}'
-            except IndexError:
+            except:
                 msg_cl2 = ''
             try:
                 id_clan_support3 = int(str(res['clan_support_units'][2]['unit_data']['id'])[0:4])
                 c_clan_support3 = chara.fromid(id_clan_support3)
                 msg_cl3 = f'{c_clan_support3.name}{c_clan_support3.icon.cqcode}'
-            except IndexError:
+            except:
                 msg_cl3 = ''
             try:
                 id_clan_support4 = int(str(res['clan_support_units'][3]['unit_data']['id'])[0:4])
                 c_clan_support4 = chara.fromid(id_clan_support4)
                 msg_cl4 = f'{c_clan_support4.name}{c_clan_support4.icon.cqcode}'
-            except IndexError:
+            except:
                 msg_cl4 = ''
             
             await bot.finish(ev, 
