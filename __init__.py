@@ -248,8 +248,7 @@ pjjc创建日：{grand_arena_str}
 【地下城支援角色】
 {msg_cl1}{msg_cl2}
 【战队支援角色】
-{msg_cl3}{msg_cl4}
-''', at_sender=False)
+{msg_cl3}{msg_cl4}''', at_sender=False)
         except ApiException as e:
             await bot.finish(ev, f'查询出错，{e}', at_sender=True)
 
