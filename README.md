@@ -22,8 +22,9 @@
    ```
    pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
    ```
+5. 在create_img.py中更改你所在的服务器名称
 
-4. 如果想推送全部排名变化（而不仅仅是上升排名变化），请切换到分支`notice-all`
+6. 如果想推送全部排名变化（而不仅仅是上升排名变化），请切换到分支`notice-all`
 
 ## 命令
 
