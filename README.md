@@ -45,3 +45,7 @@
 ## 更新日志
 
 2022-2-21：详细查询整合为两张精美图片，分别为个人资料卡图片以及支援界面图片
+
+## 图片预览
+![FQ~} OTM$L20L6DAEI~RN`K](https://user-images.githubusercontent.com/71607036/154993217-a123399a-f187-42d0-a1c9-1611591a33c6.PNG)
+![4@{%Z%591B` YE1%}H0E7@1](https://user-images.githubusercontent.com/71607036/154993258-9ab18fae-aa27-480f-b380-68086ff92b84.jpg)
