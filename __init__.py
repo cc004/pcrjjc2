@@ -77,7 +77,6 @@ async def query(id: str):
                 'target_viewer_id': int(id)
             }))
         return res
-# 如需查看所有输出数据，需要将return res改为print (res)，然后在qq发送 竞技场查询，最后在终端查看详细输出数据。
     
 def save_binds():
     with open(config, 'w') as fp:
@@ -153,7 +152,7 @@ pjjc排名：{res['user_info']["grand_arena_rank"]}
         except ApiException as e:
             await bot.finish(ev, f'查询出错，{e}', at_sender=True)
 
-@sv.on_rex(r'^详细查询 ?(\d{13})?$')
+@sv.on_rex(r'^详细查询 ?(\d{9})?$')
 async def on_query_arena_all(bot, ev):
     global binds, lck
 
