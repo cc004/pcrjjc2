@@ -12,10 +12,15 @@ from hoshino.aiorequests import post
 defaultHeaders = {
     'Accept-Encoding' : 'gzip',
     'User-Agent' : 'Dalvik/2.1.0 (Linux, U, Android 5.1.1, PCRT00 Build/LMY48Z)',
+<<<<<<< HEAD
     'Content-Type': 'application/octet-stream',
     'Expect': '100-continue',
     'X-Unity-Version' : '2018.4.21f1',
     'APP-VER' : '3.1.0',
+=======
+    'X-Unity-Version' : '2018.4.30f1',
+    'APP-VER' : '3.4.12',
+>>>>>>> main
     'BATTLE-LOGIC-VERSION' : '4',
     'BUNDLE-VER' : '',
     'DEVICE' : '2',
