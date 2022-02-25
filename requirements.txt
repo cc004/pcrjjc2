@@ -1,6 +1,6 @@
-msgpack_python>=0.5.6
+msgpack_python==0.5.6
 msgpack==1.0.2
-nonebot>=1.8.4
-Pillow>=9.0.1
-pycryptodome>=3.14.1
-zhconv>=1.4.3
+nonebot==1.8.4
+Pillow==9.0.1
+pycryptodome==3.14.1
+zhconv==1.4.3
