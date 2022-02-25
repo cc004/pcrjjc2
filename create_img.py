@@ -221,7 +221,7 @@ def _clan_support_position(clan_data, im, fnt, rgb, im_frame, bbox):
 
     return im
 
-async def _generate_support_pic_internal(data):
+def _generate_support_pic_internal(data):
     '''
     支援界面图片合成
     '''
@@ -257,7 +257,7 @@ async def _generate_support_pic_internal(data):
     return im
 
 async def generate_support_pic(*args, **kwargs):
-    await run_sync_func(_generate_support_pic_internal, *args, **kwargs)
+    return await run_sync_func(_generate_support_pic_internal, *args, **kwargs)
 
 async def generate_info_pic(*args, **kwargs):
-    await run_sync_func(_generate_info_pic_internal, *args, **kwargs)
+    return await run_sync_func(_generate_info_pic_internal, *args, **kwargs)
