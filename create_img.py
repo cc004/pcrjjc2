@@ -3,7 +3,7 @@ from ..priconne import chara
 import time
 from pathlib import Path
 import zhconv
-from hoshino.aiorequests import run_sync_func
+
 
 path = Path(__file__).parent # 获取文件所在目录的绝对路径
 font_cn_path = str(path / 'fonts' / 'SourceHanSansCN-Medium.otf')  # Path是路径对象，必须转为str之后ImageFont才能读取
@@ -11,13 +11,13 @@ font_tw_path = str(path / 'fonts' / 'pcrtwfont.ttf')
 
 server_name = 'bilibili官方服务器' # 设置服务器名称
 
-def _TraditionalToSimplified(hant_str: str):
+def TraditionalToSimplified(hant_str: str):
     '''
     Function: 将 hant_str 由繁体转化为简体
     '''
     return zhconv.convert(str(hant_str), 'zh-hans')
 
-def _cut_str(obj: str, sec: int):
+def cut_str(obj: str, sec: int):
     """
     按步长分割字符串
     """
@@ -41,7 +41,7 @@ def _cut_str(obj: str, sec: int):
 #         return cx_name
 
 # async def generate_info_pic(data, cx):
-def _generate_info_pic_internal(data):
+async def generate_info_pic(data):
     '''
     个人资料卡生成
     '''
@@ -72,14 +72,14 @@ def _generate_info_pic_internal(data):
     font_black = (77, 76, 81, 255)
 
     # 资料卡 个人信息
-    user_name_text = _TraditionalToSimplified(data["user_info"]["user_name"])
-    team_level_text = _TraditionalToSimplified(data["user_info"]["team_level"])
-    total_power_text = _TraditionalToSimplified(
+    user_name_text = TraditionalToSimplified(data["user_info"]["user_name"])
+    team_level_text = TraditionalToSimplified(data["user_info"]["team_level"])
+    total_power_text = TraditionalToSimplified(
         data["user_info"]["total_power"])
-    clan_name_text = _TraditionalToSimplified(data["clan_name"])
-    user_comment_arr = _cut_str(_TraditionalToSimplified(
+    clan_name_text = TraditionalToSimplified(data["clan_name"])
+    user_comment_arr = cut_str(TraditionalToSimplified(
         data["user_info"]["user_comment"]), 25)
-    last_login_time_text = _TraditionalToSimplified(time.strftime(
+    last_login_time_text = TraditionalToSimplified(time.strftime(
         "%Y/%m/%d %H:%M:%S", time.localtime(data["user_info"]["last_login_time"]))).split(' ')
 
     draw.text((194, 120), user_name_text, font_black, font)
@@ -97,11 +97,11 @@ def _generate_info_pic_internal(data):
     draw.text((34, 392), server_name, font_black, font_resize)
 
     # 资料卡 冒险经历
-    normal_quest_text = _TraditionalToSimplified(
+    normal_quest_text = TraditionalToSimplified(
         data["quest_info"]["normal_quest"][2])
-    hard_quest_text = _TraditionalToSimplified(
+    hard_quest_text = TraditionalToSimplified(
         data["quest_info"]["hard_quest"][2])
-    very_hard_quest_text = _TraditionalToSimplified(
+    very_hard_quest_text = TraditionalToSimplified(
         data["quest_info"]["very_hard_quest"][2])
 
     w, h = font_resize.getsize(normal_quest_text)
@@ -113,16 +113,16 @@ def _generate_info_pic_internal(data):
     w, h = font_resize.getsize(very_hard_quest_text)
     draw.text((550 - w, 530), very_hard_quest_text, font_black, font_resize)
 
-    arena_group_text = _TraditionalToSimplified(
+    arena_group_text = TraditionalToSimplified(
         data["user_info"]["arena_group"])
-    arena_time_text = _TraditionalToSimplified(time.strftime(
+    arena_time_text = TraditionalToSimplified(time.strftime(
         "%Y/%m/%d", time.localtime(data["user_info"]["arena_time"])))
-    arena_rank_text = _TraditionalToSimplified(data["user_info"]["arena_rank"])
-    grand_arena_group_text = _TraditionalToSimplified(
+    arena_rank_text = TraditionalToSimplified(data["user_info"]["arena_rank"])
+    grand_arena_group_text = TraditionalToSimplified(
         data["user_info"]["grand_arena_group"])
-    grand_arena_time_text = _TraditionalToSimplified(time.strftime(
+    grand_arena_time_text = TraditionalToSimplified(time.strftime(
         "%Y/%m/%d", time.localtime(data["user_info"]["grand_arena_time"])))
-    grand_arena_rank_text = _TraditionalToSimplified(
+    grand_arena_rank_text = TraditionalToSimplified(
         data["user_info"]["grand_arena_rank"])
 
     w, h = font_resize.getsize(arena_time_text)
@@ -138,8 +138,8 @@ def _generate_info_pic_internal(data):
     w, h = font_resize.getsize(grand_arena_rank_text+"名")
     draw.text((550 - w, 772), grand_arena_rank_text+"名", font_black, font_resize)
 
-    unit_num_text = _TraditionalToSimplified(data["user_info"]["unit_num"])
-    open_story_num_text = _TraditionalToSimplified(
+    unit_num_text = TraditionalToSimplified(data["user_info"]["unit_num"])
+    open_story_num_text = TraditionalToSimplified(
         data["user_info"]["open_story_num"])
 
     w, h = font_resize.getsize(unit_num_text)
@@ -147,9 +147,9 @@ def _generate_info_pic_internal(data):
     w, h = font_resize.getsize(open_story_num_text)
     draw.text((550 - w, 880), open_story_num_text, font_black, font_resize)
 
-    tower_cleared_floor_num_text = _TraditionalToSimplified(
+    tower_cleared_floor_num_text = TraditionalToSimplified(
         data["user_info"]["tower_cleared_floor_num"])
-    tower_cleared_ex_quest_count_text = _TraditionalToSimplified(
+    tower_cleared_ex_quest_count_text = TraditionalToSimplified(
         data["user_info"]["tower_cleared_ex_quest_count"])
 
     w, h = font_resize.getsize(tower_cleared_floor_num_text+"阶")
@@ -159,7 +159,7 @@ def _generate_info_pic_internal(data):
     draw.text((550 - w, 984), tower_cleared_ex_quest_count_text,
               font_black, font_resize)
 
-    viewer_id_arr = _cut_str(_TraditionalToSimplified(
+    viewer_id_arr = cut_str(TraditionalToSimplified(
         data["user_info"]["viewer_id"]), 3)
 
     w, h = font.getsize(
@@ -169,7 +169,7 @@ def _generate_info_pic_internal(data):
 
     return im
 
-def _friend_support_position(fr_data, im, fnt, rgb, im_frame, bbox):
+async def friend_support_position(fr_data, im, fnt, rgb, im_frame, bbox):
     '''
     好友支援位
     '''
@@ -185,7 +185,7 @@ def _friend_support_position(fr_data, im, fnt, rgb, im_frame, bbox):
 
     # 合成文字信息
     yuansu_draw = ImageDraw.Draw(im_yuansu)
-    icon_name_text = _TraditionalToSimplified(chara.fromid(id_friend_support).name)
+    icon_name_text = TraditionalToSimplified(chara.fromid(id_friend_support).name)
     icon_LV_text = str(fr_data['unit_data']['unit_level']) # 写入文本必须是str格式
     icon_rank_text = str(fr_data['unit_data']['promotion_level'])
     yuansu_draw.text(xy=(167, 36.86), text=icon_name_text, font=fnt, fill=rgb)
@@ -195,7 +195,7 @@ def _friend_support_position(fr_data, im, fnt, rgb, im_frame, bbox):
 
     return im
 
-def _clan_support_position(clan_data, im, fnt, rgb, im_frame, bbox):
+async def clan_support_position(clan_data, im, fnt, rgb, im_frame, bbox):
     '''
     地下城及战队支援位
     '''
@@ -211,7 +211,7 @@ def _clan_support_position(clan_data, im, fnt, rgb, im_frame, bbox):
 
     # 合成文字信息
     yuansu_draw = ImageDraw.Draw(im_yuansu)
-    icon_name_text = _TraditionalToSimplified(chara.fromid(id_clan_support).name)
+    icon_name_text = TraditionalToSimplified(chara.fromid(id_clan_support).name)
     icon_LV_text = str(clan_data['unit_data']['unit_level']) # 写入文本必须是str格式
     icon_rank_text = str(clan_data['unit_data']['promotion_level'])
     yuansu_draw.text(xy=(167, 36.86), text=icon_name_text, font=fnt, fill=rgb)
@@ -221,7 +221,7 @@ def _clan_support_position(clan_data, im, fnt, rgb, im_frame, bbox):
 
     return im
 
-async def _generate_support_pic_internal(data):
+async def generate_support_pic(data):
     '''
     支援界面图片合成
     '''
@@ -235,29 +235,23 @@ async def _generate_support_pic_internal(data):
     for fr_data in data['friend_support_units']: # 若列表为空，则不会进行循环
         if fr_data['position'] == 1: # 好友支援位1
             bbox = (1284, 156)
-            im = _friend_support_position(fr_data, im, fnt, rgb, im_frame, bbox)
+            im = await friend_support_position(fr_data, im, fnt, rgb, im_frame, bbox)
         elif fr_data['position'] == 2: # 好友支援位2
             bbox = (1284, 459)
-            im = _friend_support_position(fr_data, im, fnt, rgb, im_frame, bbox)
+            im = await friend_support_position(fr_data, im, fnt, rgb, im_frame, bbox)
 
     for clan_data in data['clan_support_units']:
         if clan_data['position'] == 1: # 地下城位置1
             bbox = (43, 156)
-            im = _clan_support_position(clan_data, im, fnt, rgb, im_frame, bbox)
+            im = await clan_support_position(clan_data, im, fnt, rgb, im_frame, bbox)
         elif clan_data['position'] == 2: # 地下城位置2
             bbox = (43, 459)
-            im = _clan_support_position(clan_data, im, fnt, rgb, im_frame, bbox)
+            im = await clan_support_position(clan_data, im, fnt, rgb, im_frame, bbox)
         elif clan_data['position'] == 3: # 战队位置1
             bbox = (665, 156)
-            im = _clan_support_position(clan_data, im, fnt, rgb, im_frame, bbox)
+            im = await clan_support_position(clan_data, im, fnt, rgb, im_frame, bbox)
         elif clan_data['position'] == 4: # 战队位置2
             bbox = (665, 459)
-            im = _clan_support_position(clan_data, im, fnt, rgb, im_frame, bbox)
+            im = await clan_support_position(clan_data, im, fnt, rgb, im_frame, bbox)
     
     return im
-
-async def generate_support_pic(*args, **kwargs):
-    await run_sync_func(_generate_support_pic_internal, *args, **kwargs)
-
-async def generate_info_pic(*args, **kwargs):
-    await run_sync_func(_generate_info_pic_internal, *args, **kwargs)
