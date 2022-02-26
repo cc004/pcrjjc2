@@ -23,6 +23,7 @@
    pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
    ```
 5. 在create_img.py中更改你所在的服务器名称
+6. 台服请切换到`tw`分支
 
 ## 命令
 
