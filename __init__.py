@@ -13,7 +13,7 @@ from hoshino.util import pic2b64
 import time
 
 sv_help = '''
-[竞技场绑定 uid] 绑定竞技场排名变动推送，默认双场均启用
+[竞技场绑定 uid] 绑定竞技场排名变动推送，默认双场均启用，仅排名降低时推送
 [竞技场查询 (uid)] 查询竞技场简要信息
 [停止竞技场订阅] 停止战斗竞技场排名变动推送
 [停止公主竞技场订阅] 停止公主竞技场排名变动推送
@@ -305,16 +305,16 @@ async def on_arena_schedule():
             last = cache[user]
             cache[user] = res
 
-            if res[0] != last[0] and info['arena_on']:
+            if res[0] > last[0] and info['arena_on']:
                 await bot.send_group_msg(
                     group_id = int(info['gid']),
-                    message = f'[CQ:at,qq={info["uid"]}]jjc：{last[0]}->{res[0]}'
+                    message = f'[CQ:at,qq={info["uid"]}]jjc：{last[0]}->{res[0]} ▼{res[0]-last[0]}'
                 )
 
-            if res[1] != last[1] and info['grand_arena_on']:
+            if res[1] > last[1] and info['grand_arena_on']:
                 await bot.send_group_msg(
                     group_id = int(info['gid']),
-                    message = f'[CQ:at,qq={info["uid"]}]pjjc：{last[1]}->{res[1]}'
+                    message = f'[CQ:at,qq={info["uid"]}]pjjc：{last[1]}->{res[1]} ▼{res[1]-last[1]}'
                 )
                 
             if res[0] < last[0] and info['arena_on']:
