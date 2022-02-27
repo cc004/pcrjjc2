@@ -23,6 +23,24 @@ def _cut_str(obj: str, sec: int):
     """
     return [obj[i: i+sec] for i in range(0, len(obj), sec)]
 
+# async def get_cx_name(cx):
+#     '''
+#     获取服务器名称
+#     '''
+#     if cx == '1':
+#         cx_name = '美食殿堂'
+#         return cx_name
+#     elif cx == '2':
+#         cx_name = '真步真步王国'
+#         return cx_name
+#     elif cx == '3':
+#         cx_name = '破晓之星'
+#         return cx_name
+#     elif cx == '4':
+#         cx_name = '小小甜心'
+#         return cx_name
+
+# async def generate_info_pic(data, cx):
 def _generate_info_pic_internal(data):
     '''
     个人资料卡生成
