@@ -6,15 +6,23 @@
 
 ## 配置方法
 
-1. 拿个不用的号登录PCR，然后把data/data/tw.sonet.princessconnect/shared_prefs/tw.sonet.princessconnect.v2.playerprefs.xml复制到该目录
+1. 更改account.json内的account和password为你的bilibili账号的用户名和密码, admin为管理员的qq，用来接受bilibili验证码进行登录
 
-   注意：每个服对应一个账号配置文件，并且每个号至少得开启加好友功能，四个服就要四份不同服的文件
+2. 机器人登录需要验证码时会将链接形式私聊发给admin，这时你需要点进链接正确验证，如果成功，将会出现如下的内容：  
+  `
+  validate=c721fe67f0196d7defad7245f6e58d62
+  seccode=c721fe67f0196d7defad7245f6e58d62|jordan
+  `  
+  此时，你需要将验证结果发给机器人，通过指令`/pcrval c721fe67f0196d7defad7245f6e58d62`即可完成验证（~~测试的时候似乎私聊没反应？私聊没反应的话就在群里发也可以，反正不泄露密码，大概率是程序没写好~~已修复 感谢 @assassingyk ）
 
-2. 安装依赖：
+3. account.json里面的platform和channel分别代表android和b服，emmm最好别改，改了我也不知道可不可以用
+
+4. 安装依赖：
 
    ```
    pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
    ```
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 3. 配置account.json设置代理：localhost就行，只要改端口，自行更换和你代理软件代理的端口一样就行，是代理端口哦，不是软件监听端口，开PAC模式不改变系统代理就行
@@ -26,6 +34,11 @@
 5. 在create_img.py中更改你所在的服务器名称
 6. 台服请切换到`tw`分支
 >>>>>>> parent of bba8317 (Update README.md)
+=======
+5. 在create_img.py中更改你所在的服务器名称
+6. 台服请切换到`tw`分支
+7. 如果想推送全部排名变化（而不仅仅是上升排名变化），请切换到分支`notice-all`
+>>>>>>> parent of 68fb8ce (Merge branch 'tw' into main)
 
 ## 命令
 
@@ -44,24 +57,11 @@
 | 查询竞技场订阅数   | 查询绑定账号的总数量                                     |
 | 清空竞技场订阅     | 清空所有绑定的账号(仅限主人)                             |
 
-## 支持版本
-
-目前支持游戏版本：3.1.0
-
-和之前的pcrjjc2一样，若后续游戏版本更新请自己打开`pcrclient.py`文件第18行
-
-```
-    'APP-VER' : '3.1.0',
-```
-
-修改游戏版本为当前最新，然后重启hoshinobot即可
-
 ## 更新日志
 
 2022-2-21：详细查询整合为两张精美图片，分别为个人资料卡图片以及支援界面图片
 
 ## 图片预览
+![FQ~} OTM$L20L6DAEI~RN`K](https://user-images.githubusercontent.com/71607036/154993217-a123399a-f187-42d0-a1c9-1611591a33c6.PNG)
 
-![FQ~} OTM$L20L6DAEI~RN`K](https://user-images.githubusercontent.com/71607036/154994397-fc1a4f89-4e10-4380-94bc-687868adfa9b.PNG)
-
-![4@{%Z%591B` YE1%}H0E7@1](https://user-images.githubusercontent.com/71607036/154994414-483cef8b-cce5-4764-8557-3a149a7a344e.jpg)
+![4@{%Z%591B` YE1%}H0E7@1](https://user-images.githubusercontent.com/71607036/154993258-9ab18fae-aa27-480f-b380-68086ff92b84.jpg)

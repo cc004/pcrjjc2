@@ -1,6 +1,7 @@
 {
-    "proxy": {
-        "http": "http://localhost:7890",
-        "https": "http://localhost:7890"
-    }
+    "account": "",
+    "password": "",
+    "platform": 2,
+    "channel": 1,
+    "admin": 0
 }
