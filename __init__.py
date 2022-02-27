@@ -316,6 +316,18 @@ async def on_arena_schedule():
                     group_id = int(info['gid']),
                     message = f'[CQ:at,qq={info["uid"]}]pjjc：{last[1]}->{res[1]} ▼{res[1]-last[1]}'
                 )
+                
+            if res[0] < last[0] and info['arena_on']:
+                await bot.send_group_msg(
+                    group_id = int(info['gid']),
+                    message = f'[CQ:at,qq={info["uid"]}]jjc：{last[0]}->{res[0]} ▲{last[0]-res[0]}'
+                )
+
+            if res[1] < last[1] and info['grand_arena_on']:
+                await bot.send_group_msg(
+                    group_id = int(info['gid']),
+                    message = f'[CQ:at,qq={info["uid"]}]pjjc：{last[1]}->{res[1]} ▲{last[1]-res[1]}'
+                )
         except ApiException as e:
             sv.logger.info(f'对{info["id"]}的检查出错\n{format_exc()}')
             if e.code == 6:
