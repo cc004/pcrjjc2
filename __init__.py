@@ -1,13 +1,14 @@
 from json import load, dump
-from nonebot import get_bot, on_command
+from nonebot import get_bot
 from hoshino import priv
 from hoshino.typing import NoticeSession, MessageSegment
-from .pcrclient import pcrclient, ApiException, bsdkclient
+from .pcrclient import pcrclient, ApiException
 from asyncio import Lock
 from os.path import dirname, join, exists
 from copy import deepcopy
 from traceback import format_exc
 from .safeservice import SafeService
+from .playerpref import decryptxml
 from .create_img import generate_info_pic, generate_support_pic
 from hoshino.util import pic2b64
 import time
@@ -27,7 +28,7 @@ sv_help = '''
 [清空竞技场订阅] 清空所有绑定的账号(仅限主人)
 '''.strip()
 
-sv = SafeService('竞技场推送',help_=sv_help, bundle='pcr查询')
+sv = SafeService('竞技场推送_tw', help_=sv_help, bundle='pcr查询')
 
 @sv.on_fullmatch('竞技场帮助', only_to_me=False)
 async def send_jjchelp(bot, ev):
@@ -60,46 +61,15 @@ binds = root['arena_bind']
 captcha_lck = Lock()
 
 with open(join(curpath, 'account.json')) as fp:
-    acinfo = load(fp)
+    pinfo = load(fp)
 
-bot = get_bot()
-validate = None
-validating = False
-acfirst = False
+acinfo = decryptxml(join(curpath, 'tw.sonet.princessconnect.v2.playerprefs.xml'))
 
-async def captchaVerifier(gt, challenge, userid):
-    global acfirst, validating
-    if not acfirst:
-        await captcha_lck.acquire()
-        acfirst = True
-    
-    if acinfo['admin'] == 0:
-        bot.logger.error('captcha is required while admin qq is not set, so the login can\'t continue')
-    else:
-        url = f"https://help.tencentbot.top/geetest/?captcha_type=1&challenge={challenge}&gt={gt}&userid={userid}&gs=1"
-        await bot.send_private_msg(
-            user_id = acinfo['admin'],
-            message = f'pcr账号登录需要验证码，请完成以下链接中的验证内容后将第一行validate=后面的内容复制，并用指令/pcrval xxxx将内容发送给机器人完成验证\n验证链接：{url}'
-        )
-    validating = True
-    await captcha_lck.acquire()
-    validating = False
-    return validate
-
-async def errlogger(msg):
-    await bot.send_private_msg(
-        user_id = acinfo['admin'],
-        message = f'pcrjjc2登录错误：{msg}'
-    )
-
-bclient = bsdkclient(acinfo, captchaVerifier, errlogger)
-client = pcrclient(bclient)
+client = pcrclient(acinfo['UDID'], acinfo['SHORT_UDID'], acinfo['VIEWER_ID'], acinfo['TW_SERVER_ID'], pinfo['proxy'])
 
 qlck = Lock()
 
 async def query(id: str):
-    if validating:
-        raise ApiException('账号被风控，请联系管理员输入验证码并重新登录', -1)
     async with qlck:
         while client.shouldLogin:
             await client.login()
@@ -107,8 +77,7 @@ async def query(id: str):
                 'target_viewer_id': int(id)
             }))
         return res
-# 如需查看所有输出数据，需要将return res改为print (res)，然后在qq发送 竞技场查询，最后在终端查看详细输出数据。
-    
+
 def save_binds():
     with open(config, 'w') as fp:
         dump(root, fp, indent=4)
@@ -134,7 +103,7 @@ async def pcrjjc_del(bot, ev):
             save_binds()
             await bot.send(ev, f'已清空全部【{num}】个已订阅账号！')
 
-@sv.on_rex(r'^竞技场绑定 ?(\d{13})$')
+@sv.on_rex(r'^竞技场绑定 ?(\d{9})$')
 async def on_arena_bind(bot, ev):
     global binds, lck
 
@@ -153,7 +122,7 @@ async def on_arena_bind(bot, ev):
 
     await bot.finish(ev, '竞技场绑定成功', at_sender=True)
 
-@sv.on_rex(r'^竞技场查询 ?(\d{13})?$')
+@sv.on_rex(r'^竞技场查询 ?(\d{9})?$')
 async def on_query_arena(bot, ev):
     global binds, lck
 
@@ -179,11 +148,12 @@ async def on_query_arena(bot, ev):
 f'''昵称：{res['user_info']["user_name"]}
 jjc排名：{res['user_info']["arena_rank"]}
 pjjc排名：{res['user_info']["grand_arena_rank"]}
-最后登录：{last_login_str}''', at_sender=False)
+最后登录：{last_login_str}
+''', at_sender=False)
         except ApiException as e:
             await bot.finish(ev, f'查询出错，{e}', at_sender=True)
 
-@sv.on_rex(r'^详细查询 ?(\d{13})?$')
+@sv.on_rex(r'^详细查询 ?(\d{9})?$')
 async def on_query_arena_all(bot, ev):
     global binds, lck
 
@@ -231,7 +201,7 @@ async def change_arena_sub(bot, ev):
             save_binds()
             await bot.finish(ev, f'{ev["match"].group(0)}成功', at_sender=True)
 
-@on_command('/pcrval')
+# @on_command('/pcrval') # 台服建议注释掉该命令，以防止与b服的验证码输入产生冲突，导致验证码输入无响应。
 async def validate(session):
     global binds, lck, validate
     if session.ctx['user_id'] == acinfo['admin']:
@@ -280,7 +250,7 @@ async def send_arena_sub_status(bot,ev):
     公主竞技场订阅：{'开启' if info['grand_arena_on'] else '关闭'}''',at_sender=True)
 
 
-@sv.scheduled_job('interval', minutes=1) # minutes是刷新频率，可按自身服务器性能输入其他数值，可支持整数、小数
+@sv.scheduled_job('interval', minutes=3) # minutes是刷新频率，可按自身服务器性能输入其他数值，可支持整数、小数
 async def on_arena_schedule():
     global cache, binds, lck
     bot = get_bot()
