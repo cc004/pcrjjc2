@@ -15,12 +15,17 @@
    ```
    pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
    ```
+<<<<<<< HEAD
 
 3. 配置account.json设置代理：localhost就行，只要改端口，自行更换和你代理软件代理的端口一样就行，是代理端口哦，不是软件监听端口，开PAC模式不改变系统代理就行
 
 4. 在create_img.py中更改你所在的服务器名称
 
 5. 开启插件，并重启Hoshino即可食用
+=======
+5. 在create_img.py中更改你所在的服务器名称
+6. 台服请切换到`tw`分支
+>>>>>>> parent of bba8317 (Update README.md)
 
 ## 命令
 
