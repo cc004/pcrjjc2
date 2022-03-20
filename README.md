@@ -6,26 +6,55 @@
 
 ## 配置方法
 
-1. 更改account.json内的account和password为你的bilibili账号的用户名和密码, admin为管理员的qq，用来接受bilibili验证码进行登录
+1. 克隆本仓库：
 
-2. 机器人登录需要验证码时会将链接形式私聊发给admin，这时你需要点进链接正确验证，如果成功，将会出现如下的内容：  
-  `
-  validate=c721fe67f0196d7defad7245f6e58d62
-  seccode=c721fe67f0196d7defad7245f6e58d62|jordan
-  `  
-  此时，你需要将验证结果发给机器人，通过指令`/pcrval c721fe67f0196d7defad7245f6e58d62`即可完成验证（~~测试的时候似乎私聊没反应？私聊没反应的话就在群里发也可以，反正不泄露密码，大概率是程序没写好~~已修复 感谢 @assassingyk ）
+   ```
+   git clone https://github.com/cc004/pcrjjc2.git
+   ```
 
-3. account.json里面的platform和channel分别代表android和b服，emmm最好别改，改了我也不知道可不可以用
+2. 更改account.json内的account和password为你的bilibili账号的用户名和密码, admin为管理员的qq，用来接受bilibili验证码进行登录
 
-4. 安装依赖：
+3. 机器人登录需要验证码时会将链接形式私聊发给admin，这时你需要点进链接正确验证，如果成功，将会出现如下的内容：  
+   `
+     validate=c721fe67f0196d7defad7245f6e58d62
+     seccode=c721fe67f0196d7defad7245f6e58d62|jordan
+     `  
+     此时，你需要将验证结果发给机器人，通过指令`/pcrval c721fe67f0196d7defad7245f6e58d62`即可完成验证（~~测试的时候似乎私聊没反应？私聊没反应的话就在群里发也可以，反正不泄露密码，大概率是程序没写好~~已修复 感谢 @assassingyk ）
+
+4. account.json里面的platform和channel分别代表android和b服，emmm最好别改，改了我也不知道可不可以用
+
+5. 安装依赖：
 
    ```
    pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
    ```
+
+6. 在`create_img.py`文件中更改你所在的服务器名称
+
+   ```
+   # 设置服务器名称
+   server_name = 'bilibili官方服务器'
+   ```
+
+7. 台服请切换到`tw`分支：
+
+   ```
+   # 直接克隆仓库的tw分支
+   git clone https://github.com/cc004/pcrjjc2.git -b tw
    
-5. 在create_img.py中更改你所在的服务器名称
-6. 台服请切换到`tw`分支
-7. 如果想推送全部排名变化（而不仅仅是上升排名变化），请切换到分支`notice-all`
+   # 或者在克隆本仓库后切换到tw分支
+   git checkout tw
+   ```
+
+8. 如果想推送全部排名变化（而不仅仅是上升排名变化），请切换到分支`notice-all`：
+
+   ```
+   # 直接克隆仓库的notice-all分支
+   git clone https://github.com/cc004/pcrjjc2.git -b notice-all
+   
+   # 或者在克隆本仓库后切换到notice-all分支
+   git checkout notice-all
+   ```
 
 ## 命令
 
