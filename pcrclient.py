@@ -152,6 +152,13 @@ class pcrclient:
 
             if 'viewer_id' in data_headers:
                 self.viewer_id = data_headers['viewer_id']
+            if 'result_code' in data_headers:
+                if data_headers["result_code"]==204:
+                    if "store_url" in data_headers:
+                        url=data_headers["store_url"]
+                        global ver
+                        ver=url.split("games/gzljReDive_")[1].split(".b_")
+
         
             data = response['data']
             if not noerr and 'server_error' in data:
@@ -205,11 +212,7 @@ class pcrclient:
             'campaign_data': '',
             'campaign_user': randint(0, 99999)
         })
-        if gamestart["result_code"]==204:
-            if "store_url" in gamestart:
-                url=gamestart["store_url"]
-                ver=url.split("games/gzljReDive_")[1].split(".b_")
-
+        
         if not gamestart['now_tutorial']:
             raise Exception("该账号没过完教程!")
             
