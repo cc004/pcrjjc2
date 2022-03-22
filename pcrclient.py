@@ -13,12 +13,13 @@ from datetime import datetime
 from dateutil.parser import parse
 
 apiroot = 'http://l3-prod-all-gs-gzlj.bilibiligame.net'
-
+global ver
+ver="4.9.2"
 defaultHeaders = {
     'Accept-Encoding' : 'gzip',
     'User-Agent' : 'Dalvik/2.1.0 (Linux, U, Android 5.1.1, PCRT00 Build/LMY48Z)',
     'X-Unity-Version' : '2018.4.30f1',
-    'APP-VER' : '4.9.3',
+    'APP-VER' : ver,
     'BATTLE-LOGIC-VERSION' : '4',
     'BUNDLE-VER' : '',
     'DEVICE' : '2',
@@ -204,6 +205,10 @@ class pcrclient:
             'campaign_data': '',
             'campaign_user': randint(0, 99999)
         })
+        if gamestart["result_code"]==204:
+            if "store_url" in gamestart:
+                url=gamestart["store_url"]
+                ver=url.split("games/gzljReDive_")[1].split(".b_")
 
         if not gamestart['now_tutorial']:
             raise Exception("该账号没过完教程!")
