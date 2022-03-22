@@ -11,14 +11,20 @@ from asyncio import sleep
 from re import search
 from datetime import datetime
 from dateutil.parser import parse
+from os.path import dirname, join, exists
 
 apiroot = 'http://l3-prod-all-gs-gzlj.bilibiligame.net'
-
+curpath = dirname(__file__)
+config = join(curpath, 'version.txt')
+version = "4.9.3"
+if exists(config):
+    with open(config, encoding='utf-8') as fp:
+        version = fp.read().strip()
 defaultHeaders = {
     'Accept-Encoding' : 'gzip',
     'User-Agent' : 'Dalvik/2.1.0 (Linux, U, Android 5.1.1, PCRT00 Build/LMY48Z)',
     'X-Unity-Version' : '2018.4.30f1',
-    'APP-VER' : '4.9.3',
+    'APP-VER' : version,
     'BATTLE-LOGIC-VERSION' : '4',
     'BUNDLE-VER' : '',
     'DEVICE' : '2',
@@ -151,6 +157,13 @@ class pcrclient:
 
             if 'viewer_id' in data_headers:
                 self.viewer_id = data_headers['viewer_id']
+            if "/check/game_start" == apiurl and "store_url" in data_headers:
+                global version
+                version = data_headers["store_url"].split('_')[1][:-2]
+                defaultHeaders['APP-VER'] = version
+                with open(config, "w", encoding='utf-8') as fp:
+                    print(version, file=fp)
+
         
             data = response['data']
             if not noerr and 'server_error' in data:
@@ -204,7 +217,7 @@ class pcrclient:
             'campaign_data': '',
             'campaign_user': randint(0, 99999)
         })
-
+        
         if not gamestart['now_tutorial']:
             raise Exception("该账号没过完教程!")
             
