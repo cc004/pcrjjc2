@@ -6,24 +6,45 @@
 
 ## 配置方法
 
-1. 更改account.json内的account和password为你的bilibili账号的用户名和密码, admin为管理员的qq，用来接受bilibili验证码进行登录
+1. 克隆本仓库：
 
-2. 机器人登录需要验证码时会将链接形式私聊发给admin，这时你需要点进链接正确验证，如果成功，将会出现如下的内容：  
-  `
-  validate=c721fe67f0196d7defad7245f6e58d62
-  seccode=c721fe67f0196d7defad7245f6e58d62|jordan
-  `  
-  此时，你需要将验证结果发给机器人，通过指令`/pcrval c721fe67f0196d7defad7245f6e58d62`即可完成验证（~~测试的时候似乎私聊没反应？私聊没反应的话就在群里发也可以，反正不泄露密码，大概率是程序没写好~~已修复 感谢 @assassingyk ）
+   ```
+   git clone https://github.com/cc004/pcrjjc2.git
+   ```
 
-3. account.json里面的platform和channel分别代表android和b服，emmm最好别改，改了我也不知道可不可以用
+2. 更改account.json内的account和password为你的bilibili账号的用户名和密码, admin为管理员的qq，用来接受bilibili验证码进行登录
 
-4. 安装依赖：
+3. 机器人登录需要验证码时会将链接形式私聊发给admin，这时你需要点进链接正确验证，如果成功，将会出现如下的内容：  
+   `
+     validate=c721fe67f0196d7defad7245f6e58d62
+     seccode=c721fe67f0196d7defad7245f6e58d62|jordan
+     `  
+     此时，你需要将验证结果发给机器人，通过指令`/pcrval c721fe67f0196d7defad7245f6e58d62`即可完成验证（~~测试的时候似乎私聊没反应？私聊没反应的话就在群里发也可以，反正不泄露密码，大概率是程序没写好~~已修复 感谢 @assassingyk ）
+
+4. account.json里面的platform和channel分别代表android和b服，emmm最好别改，改了我也不知道可不可以用
+
+5. 安装依赖：
 
    ```
    pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
    ```
-5. 在create_img.py中更改你所在的服务器名称
-6. 台服请切换到`tw`分支
+
+6. 在`create_img.py`文件中更改你所在的服务器名称
+
+   ```
+   # 设置服务器名称
+   server_name = 'bilibili官方服务器'
+   ```
+
+7. 台服请切换到`tw`分支：
+
+   ```
+   # 直接克隆仓库的tw分支
+   git clone https://github.com/cc004/pcrjjc2.git -b tw
+   
+   # 或者在克隆本仓库后切换到tw分支
+   git checkout tw
+   ```
 
 ## 命令
 
@@ -35,6 +56,8 @@
 | 停止公主竞技场订阅 | 停止公主竞技场排名变动推送                               |
 | 启用竞技场订阅     | 启用战斗竞技场排名变动推送                               |
 | 启用公主竞技场订阅 | 启用公主竞技场排名变动推送                               |
+| 竞技场历史         | 查询战斗竞技场变化记录（战斗竞技场订阅开启有效，可保留10条）|
+| 公主竞技场历史     | 查询公主竞技场变化记录（公主竞技场订阅开启有效，可保留10条）|
 | 删除竞技场订阅     | 删除竞技场排名变动推送绑定                               |
 | 竞技场订阅状态     | 查看排名变动推送绑定状态                                 |
 | 详细查询 uid       | 查询账号详细状态（绑定后无需输入uid）                    |
@@ -43,6 +66,8 @@
 | 清空竞技场订阅     | 清空所有绑定的账号(仅限主人)                             |
 
 ## 更新日志
+
+2022-3-26：竞技场历史记录查询 #74
 
 2022-2-21：详细查询整合为两张精美图片，分别为个人资料卡图片以及支援界面图片
 
