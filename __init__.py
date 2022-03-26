@@ -389,8 +389,7 @@ async def on_arena_schedule():
             if e.code == 6:
 
                 async with lck:
-                    binds.pop(user)
-                    save_binds()
+                    await delete_arena(uid)
                 sv.logger.info(f'已经自动删除错误的uid={info["id"]}')
         except:
             sv.logger.info(f'对{info["id"]}的检查出错\n{format_exc()}')
