@@ -1,4 +1,5 @@
 from json import load, dump
+import json
 from nonebot import get_bot, on_command
 from hoshino import priv
 from hoshino.typing import NoticeSession, MessageSegment
@@ -28,6 +29,8 @@ sv_help = '''
 [详细查询 (uid)] 查询账号详细信息
 [查询群数] 查询bot所在群的数目
 [查询竞技场订阅数] 查询绑定账号的总数量
+[查询头像框] 查看自己设置的详细查询里的角色头像框
+[更换头像框] 更换详细查询生成的头像框，默认彩色
 [清空竞技场订阅] 清空所有绑定的账号(仅限主人)
 '''.strip()
 
@@ -103,6 +106,16 @@ bclient = bsdkclient(acinfo, captchaVerifier, errlogger)
 client = pcrclient(bclient)
 
 qlck = Lock()
+
+# 头像框设置文件不存在就创建文件，并且默认彩色
+current_dir = os.path.join(os.path.dirname(__file__), 'frame.json')
+if not os.path.exists(current_dir):
+    data = {
+        "default_frame": "color.png",
+        "customize": {}
+    }
+    with open(current_dir, 'w', encoding='UTF-8') as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
 
 async def query(id: str):
     if validating:
@@ -193,21 +206,19 @@ pjjc排名：{res['user_info']["grand_arena_rank"]}
         except ApiException as e:
             await bot.finish(ev, f'查询出错，{e}', at_sender=True)
 
-# 竞技场历史
 @sv.on_prefix('竞技场历史')
 async def send_arena_history(bot, ev):
+    '''
+    竞技场历史记录
+    '''
     global binds, lck
     uid = str(ev['user_id'])
     if uid not in binds:
         await bot.send(ev, '未绑定竞技场', at_sender=True)
     else:
         ID = binds[uid]['id']
-        msg = JJCH._select(ID, 1)
-        qq_msg = f'''QQ:{uid}
-'''
-        msg = qq_msg + msg
+        msg = f'\n{JJCH._select(ID, 1)}'
         await bot.finish(ev, msg, at_sender=True)
-
 
 @sv.on_prefix('公主竞技场历史')
 async def send_parena_history(bot, ev):
@@ -217,10 +228,7 @@ async def send_parena_history(bot, ev):
         await bot.send(ev, '未绑定竞技场', at_sender=True)
     else:
         ID = binds[uid]['id']
-        msg = JJCH._select(ID, 0)
-        qq_msg = f'''QQ:{uid}
-'''
-        msg = qq_msg + msg
+        msg = f'\n{JJCH._select(ID, 0)}'
         await bot.finish(ev, msg, at_sender=True)
 
 @sv.on_rex(r'^详细查询 ?(\d{13})?$')
@@ -242,10 +250,10 @@ async def on_query_arena_all(bot, ev):
             res = await query(id)
             sv.logger.info('开始生成竞技场查询图片...') # 通过log显示信息
             # result_image = await generate_info_pic(res, cx)
-            result_image = await generate_info_pic(res)
+            result_image = await generate_info_pic(res, uid)
             result_image = pic2b64(result_image) # 转base64发送，不用将图片存本地
             result_image = MessageSegment.image(result_image)
-            result_support = await generate_support_pic(res)
+            result_support = await generate_support_pic(res, uid)
             result_support = pic2b64(result_support) # 转base64发送，不用将图片存本地
             result_support = MessageSegment.image(result_support)
             sv.logger.info('竞技场查询图片已准备完毕！')
@@ -337,19 +345,19 @@ async def on_arena_schedule():
         bind_cache = deepcopy(binds)
 
 
-    for user in bind_cache:
-        info = bind_cache[user]
+    for uid in bind_cache:
+        info = bind_cache[uid]
         try:
             sv.logger.info(f'querying {info["id"]} for {info["uid"]}')
             res = await query(info['id'])
             res = (res['user_info']['arena_rank'], res['user_info']['grand_arena_rank'])
 
-            if user not in cache:
-                cache[user] = res
+            if uid not in cache:
+                cache[uid] = res
                 continue
 
-            last = cache[user]
-            cache[user] = res
+            last = cache[uid]
+            cache[uid] = res
 
             # 两次间隔排名变化且开启了相关订阅就记录到数据库
             if res[0] != last[0] and info['arena_on']:
@@ -402,3 +410,42 @@ async def leave_notice(session: NoticeSession):
     async with lck:
         if uid in binds:
             await delete_arena(uid)
+
+@sv.on_prefix('竞技场换头像框', '更换竞技场头像框', '更换头像框')
+async def change_frame(bot, ev):
+    user_id = ev.user_id
+    frame_tmp = ev.message.extract_plain_text()
+    path = os.path.join(os.path.dirname(__file__), 'img/frame/')
+    frame_list = os.listdir(path)
+    if not frame_list:
+        await bot.finish(ev, 'img/frame/路径下没有任何头像框，请联系维护组检查目录')
+    if frame_tmp not in frame_list:
+        msg = f'文件名输入错误，命令样例：\n更换头像框 color.png\n目前可选文件有：\n' + '\n'.join(frame_list)
+        await bot.finish(ev, msg)
+    data = {str(user_id): frame_tmp}
+    current_dir = os.path.join(os.path.dirname(__file__), 'frame.json')
+    with open(current_dir, 'r', encoding='UTF-8') as f:
+        f_data = json.load(f)
+    f_data['customize'] = data
+    with open(current_dir, 'w', encoding='UTF-8') as rf:
+        json.dump(f_data, rf, indent=4, ensure_ascii=False)
+    await bot.send(ev, f'已成功选择头像框:{frame_tmp}')
+    frame_path = os.path.join(os.path.dirname(__file__), f'img/frame/{frame_tmp}')
+    msg = MessageSegment.image(f'file:///{os.path.abspath(frame_path)}')
+    await bot.send(ev, msg)
+
+# see_a_see（
+@sv.on_fullmatch('查竞技场头像框', '查询竞技场头像框', '查询头像框')
+async def see_a_see_frame(bot, ev):
+    user_id = str(ev.user_id)
+    current_dir = os.path.join(os.path.dirname(__file__), 'frame.json')
+    with open(current_dir, 'r', encoding='UTF-8') as f:
+        f_data = json.load(f)
+    id_list = list(f_data['customize'].keys())
+    if user_id not in id_list:
+        frame_tmp = f_data['default_frame']
+    else:
+        frame_tmp = f_data['customize'][user_id]
+    path = os.path.join(os.path.dirname(__file__), f'img/frame/{frame_tmp}')
+    msg = MessageSegment.image(f'file:///{os.path.abspath(path)}')
+    await bot.send(ev, msg)
