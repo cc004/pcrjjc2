@@ -1,3 +1,4 @@
+import json
 from PIL import Image, ImageDraw, ImageFont, ImageColor
 from ..priconne import chara
 import time
@@ -11,6 +12,17 @@ font_tw_path = str(path / 'fonts' / 'pcrtwfont.ttf')
 
 server_name = 'bilibili官方服务器' # 设置服务器名称
 
+def get_frame(user_id):
+    current_dir = path / 'frame.json'
+    with open(current_dir, 'r', encoding='UTF-8') as f:
+        f_data = json.load(f)
+    id_list = list(f_data['customize'].keys())
+    if user_id not in id_list:
+        frame_tmp = f_data['default_frame']
+    else:
+        frame_tmp = f_data['customize'][user_id]
+    return frame_tmp
+
 def _TraditionalToSimplified(hant_str: str):
     '''
     Function: 将 hant_str 由繁体转化为简体
@@ -23,18 +35,19 @@ def _cut_str(obj: str, sec: int):
     """
     return [obj[i: i+sec] for i in range(0, len(obj), sec)]
 
-def _generate_info_pic_internal(data):
+def _generate_info_pic_internal(data, uid):
     '''
     个人资料卡生成
     '''
-    im = Image.open(path / 'img' / 'template.png') # 图片模板
-    im_frame = Image.open(path / 'img' / 'frame.png') # 头像框
+    frame_tmp = get_frame(uid)
+    im = Image.open(path / 'img' / 'template.png').convert("RGBA") # 图片模板
+    im_frame = Image.open(path / 'img' / 'frame' / f'{frame_tmp}').convert("RGBA") # 头像框
     try:
         id_favorite = int(str(data['favorite_unit']['id'])[0:4]) # 截取第1位到第4位的字符
     except:
         id_favorite = 1000 # 一个？角色
     pic_dir = chara.fromid(id_favorite).icon.path
-    user_avatar = Image.open(pic_dir)
+    user_avatar = Image.open(pic_dir).convert("RGBA")
     user_avatar = user_avatar.resize((90, 90))
     im.paste(user_avatar, (44, 150), mask=user_avatar)
     im_frame = im_frame.resize((100, 100))
@@ -156,10 +169,10 @@ def _friend_support_position(fr_data, im, fnt, rgb, im_frame, bbox):
     好友支援位
     '''
     # 合成头像
-    im_yuansu = Image.open(path / 'img' / 'yuansu.png') # 一个支援ui模板
+    im_yuansu = Image.open(path / 'img' / 'yuansu.png').convert("RGBA") # 一个支援ui模板
     id_friend_support = int(str(fr_data['unit_data']['id'])[0:4])
     pic_dir = chara.fromid(id_friend_support).icon.path
-    avatar = Image.open(pic_dir)
+    avatar = Image.open(pic_dir).convert("RGBA")
     avatar = avatar.resize((115, 115))
     im_yuansu.paste(im=avatar, box=(28, 78), mask=avatar)
     im_frame = im_frame.resize((128, 128))
@@ -182,10 +195,10 @@ def _clan_support_position(clan_data, im, fnt, rgb, im_frame, bbox):
     地下城及战队支援位
     '''
     # 合成头像
-    im_yuansu = Image.open(path / 'img' / 'yuansu.png') # 一个支援ui模板
+    im_yuansu = Image.open(path / 'img' / 'yuansu.png').convert("RGBA") # 一个支援ui模板
     id_clan_support = int(str(clan_data['unit_data']['id'])[0:4])
     pic_dir = chara.fromid(id_clan_support).icon.path
-    avatar = Image.open(pic_dir)
+    avatar = Image.open(pic_dir).convert("RGBA")
     avatar = avatar.resize((115, 115))
     im_yuansu.paste(im=avatar, box=(28, 78), mask=avatar)
     im_frame = im_frame.resize((128, 128))
@@ -203,12 +216,13 @@ def _clan_support_position(clan_data, im, fnt, rgb, im_frame, bbox):
 
     return im
 
-def _generate_support_pic_internal(data):
+def _generate_support_pic_internal(data, uid):
     '''
     支援界面图片合成
     '''
-    im = Image.open(path / 'img' / 'support.png') # 支援图片模板
-    im_frame = Image.open(path / 'img' / 'frame.png') # 头像框
+    frame_tmp = get_frame(uid)
+    im = Image.open(path / 'img' / 'support.png').convert("RGBA") # 支援图片模板
+    im_frame = Image.open(path / 'img' / 'frame' / f'{frame_tmp}').convert("RGBA") # 头像框
 
     fnt = ImageFont.truetype(font=font_cn_path, size=30)
     rgb = ImageColor.getrgb('#4e4e4e')
