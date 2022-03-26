@@ -408,7 +408,7 @@ async def change_frame(bot, ev):
     if not frame_list:
         await bot.finish(ev, 'img/frame/路径下没有任何头像框，请联系维护组检查目录')
     if frame_tmp not in frame_list:
-        msg = f'文件名输入错误，命令样例：\n竞技场换头像框 color.png\n目前可选文件有：\n' + '\n'.join(frame_list)
+        msg = f'文件名输入错误，命令样例：\n更换头像框 color.png\n目前可选文件有：\n' + '\n'.join(frame_list)
         await bot.finish(ev, msg)
     data = {str(user_id): frame_tmp}
     current_dir = os.path.join(os.path.dirname(__file__), 'frame.json')
