@@ -193,21 +193,19 @@ pjjc排名：{res['user_info']["grand_arena_rank"]}
         except ApiException as e:
             await bot.finish(ev, f'查询出错，{e}', at_sender=True)
 
-# 竞技场历史
 @sv.on_prefix('竞技场历史')
 async def send_arena_history(bot, ev):
+    '''
+    竞技场历史记录
+    '''
     global binds, lck
     uid = str(ev['user_id'])
     if uid not in binds:
         await bot.send(ev, '未绑定竞技场', at_sender=True)
     else:
         ID = binds[uid]['id']
-        msg = JJCH._select(ID, 1)
-        qq_msg = f'''QQ:{uid}
-'''
-        msg = qq_msg + msg
+        msg = f'\n{JJCH._select(ID, 1)}'
         await bot.finish(ev, msg, at_sender=True)
-
 
 @sv.on_prefix('公主竞技场历史')
 async def send_parena_history(bot, ev):
@@ -217,10 +215,7 @@ async def send_parena_history(bot, ev):
         await bot.send(ev, '未绑定竞技场', at_sender=True)
     else:
         ID = binds[uid]['id']
-        msg = JJCH._select(ID, 0)
-        qq_msg = f'''QQ:{uid}
-'''
-        msg = qq_msg + msg
+        msg = f'\n{JJCH._select(ID, 0)}'
         await bot.finish(ev, msg, at_sender=True)
 
 @sv.on_rex(r'^详细查询 ?(\d{13})?$')
