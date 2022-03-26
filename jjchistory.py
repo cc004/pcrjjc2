@@ -69,10 +69,10 @@ limit(select count(*) FROM JJCHistoryStorage WHERE UID = ? and ITEM = ?) offset 
                 msg = f'竞技场绑定ID: {UID}\n{item_name}历史记录'
                 for row in result_list:
                     if row[4] > row[5]:
-                        jjc_msg = f'\n【{row[2]}】{row[4]}->{row[5]}, ↑{row[4]-row[5]}'
+                        jjc_msg = f'\n【{row[2]}】{row[4]}->{row[5]} ▲{row[4]-row[5]}'
                     else:
-                        jjc_msg = f'\n【{row[2]}】{row[4]}->{row[5]}, ↓{row[5]-row[4]}'
-                msg = msg + jjc_msg
+                        jjc_msg = f'\n【{row[2]}】{row[4]}->{row[5]} ▼{row[5]-row[4]}'
+                    msg = msg + jjc_msg
                 return msg
             else:
                 msg = f'竞技场绑定ID: {UID}\n{item_name}历史记录\n无记录'
