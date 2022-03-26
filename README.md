@@ -46,16 +46,6 @@
    git checkout tw
    ```
 
-8. 如果想推送全部排名变化（而不仅仅是上升排名变化），请切换到分支`notice-all`：
-
-   ```
-   # 直接克隆仓库的notice-all分支
-   git clone https://github.com/cc004/pcrjjc2.git -b notice-all
-   
-   # 或者在克隆本仓库后切换到notice-all分支
-   git checkout notice-all
-   ```
-
 ## 命令
 
 | 关键词             | 说明                                                     |
