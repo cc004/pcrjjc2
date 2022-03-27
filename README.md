@@ -36,15 +36,9 @@
    server_name = 'bilibili官方服务器'
    ```
 
-7. 台服请切换到`tw`分支：
+7. 台服请使用**pcrjjc3-tw**：
 
-   ```
-   # 直接克隆仓库的tw分支
-   git clone https://github.com/cc004/pcrjjc2.git -b tw
-   
-   # 或者在克隆本仓库后切换到tw分支
-   git checkout tw
-   ```
+   **pcrjjc3-tw:** [由pcrjjc2修改而来的台服竞技场查询插件，额外支持了多服查询 (github.com)](https://github.com/azmiao/pcrjjc3-tw)
 
 8. 如果想推送全部排名变化（而不仅仅是上升排名变化），请切换到分支`notice-all`：
 
