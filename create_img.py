@@ -12,16 +12,27 @@ font_tw_path = str(path / 'fonts' / 'pcrtwfont.ttf')
 
 server_name = 'bilibili官方服务器' # 设置服务器名称
 
-def get_frame(user_id):
-    current_dir = path / 'frame.json'
-    with open(current_dir, 'r', encoding='UTF-8') as f:
-        f_data = json.load(f)
-    id_list = list(f_data['customize'].keys())
-    if user_id not in id_list:
-        frame_tmp = f_data['default_frame']
+def get_im_frame(rank):
+    if rank == 1:
+        frame_tmp = 'blue.png'
+    elif rank <= 3:
+        frame_tmp = 'copper.png'
+    elif rank <= 6:
+        frame_tmp = 'silver.png'
+    elif rank <= 10:
+        frame_tmp = 'gold.png'
+    elif rank <= 17:
+        frame_tmp = 'purple.png'
+    elif rank <= 20:
+        frame_tmp = 'red.png'
+    elif rank <= 23:  # 预测
+        frame_tmp = 'green.png'
+    elif rank <= 26:  # 预测
+        frame_tmp = 'orange.png'
     else:
-        frame_tmp = f_data['customize'][user_id]
-    return frame_tmp
+        frame_tmp = 'color.png'
+    im_frame = Image.open(path / 'img' / 'frame' / f'{frame_tmp}').convert("RGBA") # 头像框
+    return im_frame
 
 def _TraditionalToSimplified(hant_str: str):
     '''
@@ -35,13 +46,13 @@ def _cut_str(obj: str, sec: int):
     """
     return [obj[i: i+sec] for i in range(0, len(obj), sec)]
 
-def _generate_info_pic_internal(data, uid):
+def _generate_info_pic_internal(data):
     '''
     个人资料卡生成
     '''
-    frame_tmp = get_frame(uid)
     im = Image.open(path / 'img' / 'template.png').convert("RGBA") # 图片模板
-    im_frame = Image.open(path / 'img' / 'frame' / f'{frame_tmp}').convert("RGBA") # 头像框
+    favorite_rank = data['favorite_unit']['promotion_level']  # rank获取
+    im_frame = get_im_frame(favorite_rank)
     try:
         id_favorite = int(str(data['favorite_unit']['id'])[0:4]) # 截取第1位到第4位的字符
     except:
@@ -216,13 +227,11 @@ def _clan_support_position(clan_data, im, fnt, rgb, im_frame, bbox):
 
     return im
 
-def _generate_support_pic_internal(data, uid):
+def _generate_support_pic_internal(data):
     '''
     支援界面图片合成
     '''
-    frame_tmp = get_frame(uid)
     im = Image.open(path / 'img' / 'support.png').convert("RGBA") # 支援图片模板
-    im_frame = Image.open(path / 'img' / 'frame' / f'{frame_tmp}').convert("RGBA") # 头像框
 
     fnt = ImageFont.truetype(font=font_cn_path, size=30)
     rgb = ImageColor.getrgb('#4e4e4e')
@@ -231,23 +240,35 @@ def _generate_support_pic_internal(data, uid):
     for fr_data in data['friend_support_units']: # 若列表为空，则不会进行循环
         if fr_data['position'] == 1: # 好友支援位1
             bbox = (1284, 156)
+            rank = fr_data['unit_data']['promotion_level']  # rank获取
+            im_frame = get_im_frame(rank)
             im = _friend_support_position(fr_data, im, fnt, rgb, im_frame, bbox)
         elif fr_data['position'] == 2: # 好友支援位2
             bbox = (1284, 459)
+            rank = fr_data['unit_data']['promotion_level']  # rank获取
+            im_frame = get_im_frame(rank)
             im = _friend_support_position(fr_data, im, fnt, rgb, im_frame, bbox)
 
     for clan_data in data['clan_support_units']:
         if clan_data['position'] == 1: # 地下城位置1
             bbox = (43, 156)
+            rank = clan_data['unit_data']['promotion_level']  # rank获取
+            im_frame = get_im_frame(rank)
             im = _clan_support_position(clan_data, im, fnt, rgb, im_frame, bbox)
         elif clan_data['position'] == 2: # 地下城位置2
             bbox = (43, 459)
+            rank = clan_data['unit_data']['promotion_level']  # rank获取
+            im_frame = get_im_frame(rank)
             im = _clan_support_position(clan_data, im, fnt, rgb, im_frame, bbox)
         elif clan_data['position'] == 3: # 战队位置1
             bbox = (665, 156)
+            rank = clan_data['unit_data']['promotion_level']  # rank获取
+            im_frame = get_im_frame(rank)
             im = _clan_support_position(clan_data, im, fnt, rgb, im_frame, bbox)
         elif clan_data['position'] == 4: # 战队位置2
             bbox = (665, 459)
+            rank = clan_data['unit_data']['promotion_level']  # rank获取
+            im_frame = get_im_frame(rank)
             im = _clan_support_position(clan_data, im, fnt, rgb, im_frame, bbox)
     
     return im
