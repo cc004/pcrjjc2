@@ -5,30 +5,47 @@ from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad, pad
 from base64 import b64encode, b64decode
 from random import choice
+from bs4 import BeautifulSoup
+import requests
+import re
+import os
+import json
 
-from msgpack.exceptions import ExtraData
 from hoshino.aiorequests import post
 
-defaultHeaders = {
-    'Accept-Encoding' : 'gzip',
-    'User-Agent' : 'Dalvik/2.1.0 (Linux, U, Android 5.1.1, PCRT00 Build/LMY48Z)',
-    'Content-Type': 'application/octet-stream',
-    'Expect': '100-continue',
-    'X-Unity-Version' : '2018.4.21f1',
-    'APP-VER' : '3.1.0',
-    'BATTLE-LOGIC-VERSION' : '4',
-    'BUNDLE-VER' : '',
-    'DEVICE' : '2',
-    'DEVICE-ID' : '7b1703a5d9b394e24051d7a5d4818f17',
-    'DEVICE-NAME' : 'OPPO PCRT00',
-    'GRAPHICS-DEVICE-NAME' : 'Adreno (TM) 640',
-    'IP-ADDRESS' : '10.0.2.15',
-    'KEYCHAIN' : '',
-    'LOCALE' : 'Jpn',
-    'PLATFORM-OS-VERSION' : 'Android OS 5.1.1 / API-22 (LMY48Z/rel.se.infra.20200612.100533)',
-    'REGION-CODE' : '',
-    'RES-VER' : '00017004'
-}
+# 获取headers
+def get_headers():
+    app_ver = get_ver()
+    default_headers = {
+        'Accept-Encoding' : 'gzip',
+        'User-Agent' : 'Dalvik/2.1.0 (Linux, U, Android 5.1.1, PCRT00 Build/LMY48Z)',
+        'Content-Type': 'application/octet-stream',
+        'Expect': '100-continue',
+        'X-Unity-Version' : '2018.4.21f1',
+        'APP-VER' : app_ver,
+        'BATTLE-LOGIC-VERSION' : '4',
+        'BUNDLE-VER' : '',
+        'DEVICE' : '2',
+        'DEVICE-ID' : '7b1703a5d9b394e24051d7a5d4818f17',
+        'DEVICE-NAME' : 'OPPO PCRT00',
+        'GRAPHICS-DEVICE-NAME' : 'Adreno (TM) 640',
+        'IP-ADDRESS' : '10.0.2.15',
+        'KEYCHAIN' : '',
+        'LOCALE' : 'Jpn',
+        'PLATFORM-OS-VERSION' : 'Android OS 5.1.1 / API-22 (LMY48Z/rel.se.infra.20200612.100533)',
+        'REGION-CODE' : '',
+        'RES-VER' : '00017004'
+    }
+    return default_headers
+
+# 获取版本号
+def get_ver():
+    app_url = 'https://apkimage.io/?q=tw.sonet.princessconnect'
+    app_res = requests.get(app_url, timeout=15)
+    soup = BeautifulSoup(app_res.text, 'lxml')
+    ver_tmp = soup.find('span', text = re.compile(r'Version：(\d\.\d\.\d)'))
+    app_ver = ver_tmp.text.replace('Version：', '')
+    return str(app_ver)
 
 class ApiException(Exception):
     def __init__(self, message, code):
@@ -49,6 +66,9 @@ class pcrclient:
         self.headers = {}
         self.proxy = proxy
 
+        header_path = os.path.join(os.path.dirname(__file__), 'headers.json')
+        with open(header_path, 'r', encoding='UTF-8') as f:
+            defaultHeaders = json.load(f)
         for key in defaultHeaders.keys():
             self.headers[key] = defaultHeaders[key]
 
