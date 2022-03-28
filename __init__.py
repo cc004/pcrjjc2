@@ -2,7 +2,7 @@ from json import load, dump
 from nonebot import get_bot
 from hoshino import priv
 from hoshino.typing import NoticeSession, MessageSegment
-from .pcrclient import pcrclient, ApiException
+from .pcrclient import pcrclient, ApiException, get_headers
 from asyncio import Lock
 from os.path import dirname, join, exists
 from copy import deepcopy
@@ -12,6 +12,9 @@ from .playerpref import decryptxml
 from .create_img import generate_info_pic, generate_support_pic
 from hoshino.util import pic2b64
 import time
+import requests
+import os
+import json
 
 sv_help = '''
 [竞技场绑定 uid] 绑定竞技场排名变动推送，默认双场均启用，仅排名降低时推送
@@ -28,6 +31,14 @@ sv_help = '''
 [清空竞技场订阅] 清空所有绑定的账号(仅限主人)
 '''.strip()
 
+# 启动时不存在就创建
+# headers文件
+header_path = os.path.join(os.path.dirname(__file__), 'headers.json')
+if not os.path.exists(header_path):
+    default_headers = get_headers()
+    with open(header_path, 'w', encoding='UTF-8') as f:
+        json.dump(default_headers, f, indent=4, ensure_ascii=False)
+
 sv = SafeService('竞技场推送_tw', help_=sv_help, bundle='pcr查询')
 
 @sv.on_fullmatch('竞技场帮助', only_to_me=False)
@@ -42,34 +53,38 @@ async def group_num(bot, ev):
         msg = f"本Bot目前正在为【{len(gl)}】个群服务"
     await bot.send(ev, f'{msg}')
 
+# 读取绑定配置
 curpath = dirname(__file__)
 config = join(curpath, 'binds.json')
 root = {
     'arena_bind' : {}
 }
-
-cache = {}
-client = None
-lck = Lock()
-
 if exists(config):
     with open(config) as fp:
         root = load(fp)
-
 binds = root['arena_bind']
 
-captcha_lck = Lock()
-
+# 读取代理配置
 with open(join(curpath, 'account.json')) as fp:
     pinfo = load(fp)
 
-acinfo = decryptxml(join(curpath, 'tw.sonet.princessconnect.v2.playerprefs.xml'))
+# 一些变量初始化
+cache = {}
+client = None
 
-client = pcrclient(acinfo['UDID'], acinfo['SHORT_UDID'], acinfo['VIEWER_ID'], acinfo['TW_SERVER_ID'], pinfo['proxy'])
-
+# 设置异步锁保证线程安全
+lck = Lock()
+captcha_lck = Lock()
 qlck = Lock()
 
+# 获取配置文件
+def get_client():
+    acinfo = decryptxml(join(curpath, 'tw.sonet.princessconnect.v2.playerprefs.xml'))
+    client = pcrclient(acinfo['UDID'], acinfo['SHORT_UDID'], acinfo['VIEWER_ID'], acinfo['TW_SERVER_ID'], pinfo['proxy'])
+    return client, acinfo
+
 async def query(id: str):
+    client, acinfo = get_client()
     async with qlck:
         while client.shouldLogin:
             await client.login()
@@ -204,6 +219,7 @@ async def change_arena_sub(bot, ev):
 # @on_command('/pcrval') # 台服建议注释掉该命令，以防止与b服的验证码输入产生冲突，导致验证码输入无响应。
 async def validate(session):
     global binds, lck, validate
+    client, acinfo = get_client()
     if session.ctx['user_id'] == acinfo['admin']:
         validate = session.ctx['message'].extract_plain_text().strip()[8:]
         captcha_lck.release()
@@ -306,3 +322,13 @@ async def leave_notice(session: NoticeSession):
         if uid in binds:
             binds.pop(uid)
             save_binds()
+
+# 由于apkimage网站的pcr_tw大概每次都是10点多更新的
+# 因此这里每天12点左右自动更新版本号
+@sv.scheduled_job('cron', hour='11', minute='56')
+async def update_ver():
+    header_path = os.path.join(os.path.dirname(__file__), 'headers.json')
+    default_headers = get_headers()
+    with open(header_path, 'w', encoding='UTF-8') as f:
+        json.dump(default_headers, f, indent=4, ensure_ascii=False)
+    sv.logger.info(f'pcr-jjc2-tw的游戏版本已更新至最新') 
