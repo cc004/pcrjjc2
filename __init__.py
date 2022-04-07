@@ -323,9 +323,9 @@ async def leave_notice(session: NoticeSession):
             binds.pop(uid)
             save_binds()
 
-# 由于apkimage网站的pcr_tw大概每次都是10点多更新的
-# 因此这里每天12点左右自动更新版本号
-@sv.scheduled_job('cron', hour='11', minute='56')
+# 由于apkimage网站的pcr_tw大概每次都是12点左右更新的
+# 因此这里每天13点左右自动更新版本号
+@sv.scheduled_job('cron', hour='13', minute='1')
 async def update_ver():
     header_path = os.path.join(os.path.dirname(__file__), 'headers.json')
     default_headers = get_headers()
