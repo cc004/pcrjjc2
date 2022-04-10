@@ -395,16 +395,16 @@ async def on_arena_schedule():
 async def leave_notice(session: NoticeSession):
     global lck, binds
     uid = str(session.ctx['user_id'])
+    gid = str(session.ctx['group_id'])
     bot = get_bot()
-    
     async with lck:
         bind_cache = deepcopy(binds)
-        if uid in binds:
-            info = bind_cache[uid]
+        info = bind_cache[uid]
+        if uid in binds and info['gid'] == gid:
             delete_arena(uid)
             await bot.send_group_msg(
                 group_id = int(info['gid']),
-                message = f'{uid}退群了，已自动删除其竞技场订阅推送'
+                message = f'{uid}退群了，已自动删除其绑定在本群的竞技场订阅推送'
             )
 
 @sv.on_prefix('竞技场换头像框', '更换竞技场头像框', '更换头像框')
