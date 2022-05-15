@@ -159,7 +159,7 @@ class pcrclient:
                 self.viewer_id = data_headers['viewer_id']
             if "/check/game_start" == apiurl and "store_url" in data_headers:
                 global version
-                version = data_headers["store_url"].split('_')[1][:-2]
+                version = data_headers["store_url"].split('_')[1][:-4]
                 defaultHeaders['APP-VER'] = version
                 with open(config, "w", encoding='utf-8') as fp:
                     print(version, file=fp)
