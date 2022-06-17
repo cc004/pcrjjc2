@@ -28,7 +28,7 @@
    ```
    pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
    ```
-
+   
 6. 在`create_img.py`文件中更改你所在的服务器名称
 
    ```
@@ -50,6 +50,14 @@
    git checkout notice-all
    ```
 
+9. 注意：若运行过程中出现`TypeError: __init__() got an unexpected keyword argument 'strict_map_key'`报错，为依赖问题，请在终端中进行如下操作，一行一行依次复制执行，过程中提示是否卸载，选择Y：
+
+   ```
+   pip uninstall msgpack_python
+   pip uninstall msgpack
+   pip install msgpack~=1.0.2
+   ```
+   
 ## 命令
 
 | 关键词             | 说明                                                         |
