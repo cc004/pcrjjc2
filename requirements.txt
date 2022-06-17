@@ -1,7 +1,7 @@
-msgpack>=1.0.2
-nonebot>=1.8.4
-Pillow>=9.0.1
-pycryptodome>=3.14.1
-python_dateutil>=2.8.2
-requests>=2.27.1
-zhconv>=1.4.3
+msgpack~=1.0.2
+nonebot~=1.8.4
+Pillow~=9.0.1
+pycryptodome~=3.14.1
+python_dateutil~=2.8.2
+requests~=2.27.1
+zhconv~=1.4.3
