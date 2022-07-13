@@ -120,7 +120,6 @@ async def query(id: str):
                 'target_viewer_id': int(id)
             }))
         return res
-# 如需查看所有输出数据，需要将return res改为print (res)，然后在qq发送 竞技场查询，最后在终端查看详细输出数据。
     
 def save_binds():
     with open(config, 'w') as fp:
