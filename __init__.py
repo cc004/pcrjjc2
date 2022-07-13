@@ -393,7 +393,6 @@ async def on_arena_schedule():
                         sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
 
             if res[1] > last[1] and info['grand_arena_on']:
-
                 for sid in hoshino.get_self_ids():
                     try:
                         await bot.send_group_msg(
@@ -418,7 +417,6 @@ async def on_arena_schedule():
                         sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
 
             if res[1] < last[1] and info['grand_arena_on']:
-
                 for sid in hoshino.get_self_ids():
                     try:
                         await bot.send_group_msg(
