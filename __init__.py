@@ -13,6 +13,7 @@ from .create_img import generate_info_pic, generate_support_pic
 from hoshino.util import pic2b64
 import time
 from .jjchistory import *
+import hoshino
 
 
 sv_help = '''
@@ -39,14 +40,6 @@ sv = SafeService('竞技场推送',help_=sv_help, bundle='pcr查询')
 @sv.on_fullmatch('竞技场帮助', only_to_me=False)
 async def send_jjchelp(bot, ev):
     await bot.send(ev, f'{sv_help}')
-
-@sv.on_fullmatch('查询群数', only_to_me=False)
-async def group_num(bot, ev):
-    self_ids = bot._wsr_api_clients.keys()
-    for sid in self_ids:
-        gl = await bot.get_group_list(self_id=sid)
-        msg = f"本Bot目前正在为【{len(gl)}】个群服务"
-    await bot.send(ev, f'{msg}')
 
 curpath = dirname(__file__)
 config = join(curpath, 'binds.json')
@@ -132,6 +125,24 @@ async def query(id: str):
 def save_binds():
     with open(config, 'w') as fp:
         dump(root, fp, indent=4)
+
+@sv.on_fullmatch('查询群数', only_to_me=False)
+async def group_num(bot, ev):
+    global binds, lck
+    gid = str(ev['group_id'])
+    
+    async with lck:
+        for sid in hoshino.get_self_ids():
+            gl = await bot.get_group_list(self_id=sid)
+            gl = [g['group_id'] for g in gl]
+            try:
+                await bot.send_group_msg(
+                self_id=sid,
+                group_id=gid,
+                message=f"本Bot目前正在为【{len(gl)}】个群服务"
+                )
+            except Exception as e:
+                sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
 
 @sv.on_fullmatch('查询竞技场订阅数', only_to_me=False)
 async def pcrjjc_number(bot, ev):
@@ -371,28 +382,54 @@ async def on_arena_schedule():
                 sv.logger.info(f"{info['id']}: PJJC {last[1]}->{res[1]}")
 
             if res[0] > last[0] and info['arena_on']:
-                await bot.send_group_msg(
-                    group_id = int(info['gid']),
-                    message = f'[CQ:at,qq={info["uid"]}]jjc：{last[0]}->{res[0]} ▼{res[0]-last[0]}'
-                )
+                for sid in hoshino.get_self_ids():
+                    try:
+                        await bot.send_group_msg(
+                            self_id = sid,
+                            group_id = int(info['gid']),
+                            message = f'[CQ:at,qq={info["uid"]}]jjc：{last[0]}->{res[0]} ▼{res[0]-last[0]}'
+                        )
+                    except Exception as e:
+                        gid = int(info['gid'])
+                        sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
 
             if res[1] > last[1] and info['grand_arena_on']:
-                await bot.send_group_msg(
-                    group_id = int(info['gid']),
-                    message = f'[CQ:at,qq={info["uid"]}]pjjc：{last[1]}->{res[1]} ▼{res[1]-last[1]}'
-                )
-                
+
+                for sid in hoshino.get_self_ids():
+                    try:
+                        await bot.send_group_msg(
+                            self_id = sid,
+                            group_id = int(info['gid']),
+                            message = f'[CQ:at,qq={info["uid"]}]pjjc：{last[1]}->{res[1]} ▼{res[1]-last[1]}'
+                        )
+                    except Exception as e:
+                        gid = int(info['gid'])
+                        sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
+
             if res[0] < last[0] and info['arena_on']:
-                await bot.send_group_msg(
-                    group_id = int(info['gid']),
-                    message = f'[CQ:at,qq={info["uid"]}]jjc：{last[0]}->{res[0]} ▲{last[0]-res[0]}'
-                )
+                for sid in hoshino.get_self_ids():
+                    try:
+                        await bot.send_group_msg(
+                            self_id = sid,
+                            group_id = int(info['gid']),
+                            message = f'[CQ:at,qq={info["uid"]}]jjc：{last[0]}->{res[0]} ▲{last[0]-res[0]}'
+                        )
+                    except Exception as e:
+                        gid = int(info['gid'])
+                        sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
 
             if res[1] < last[1] and info['grand_arena_on']:
-                await bot.send_group_msg(
-                    group_id = int(info['gid']),
-                    message = f'[CQ:at,qq={info["uid"]}]pjjc：{last[1]}->{res[1]} ▲{last[1]-res[1]}'
-                )
+
+                for sid in hoshino.get_self_ids():
+                    try:
+                        await bot.send_group_msg(
+                            self_id = sid,
+                            group_id = int(info['gid']),
+                            message = f'[CQ:at,qq={info["uid"]}]pjjc：{last[1]}->{res[1]} ▲{last[1]-res[1]}'
+                        )
+                    except Exception as e:
+                        gid = int(info['gid'])
+                        sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
         except ApiException as e:
             sv.logger.info(f'对{info["id"]}的检查出错\n{format_exc()}')
             if e.code == 6:
