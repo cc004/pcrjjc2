@@ -128,7 +128,7 @@ def save_binds():
 @sv.on_fullmatch('查询群数', only_to_me=False)
 async def group_num(bot, ev):
     global binds, lck
-    gid = str(ev['group_id'])
+    gid = int(ev['group_id'])
     
     async with lck:
         for sid in hoshino.get_self_ids():
