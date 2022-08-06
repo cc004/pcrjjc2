@@ -140,6 +140,7 @@ async def group_num(bot, ev):
                 group_id=gid,
                 message=f"本Bot目前正在为【{len(gl)}】个群服务"
                 )
+                break
             except Exception as e:
                 sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
 
@@ -388,6 +389,7 @@ async def on_arena_schedule():
                             group_id = int(info['gid']),
                             message = f'[CQ:at,qq={info["uid"]}]jjc：{last[0]}->{res[0]} ▼{res[0]-last[0]}'
                         )
+                        break
                     except Exception as e:
                         gid = int(info['gid'])
                         sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
@@ -400,6 +402,7 @@ async def on_arena_schedule():
                             group_id = int(info['gid']),
                             message = f'[CQ:at,qq={info["uid"]}]pjjc：{last[1]}->{res[1]} ▼{res[1]-last[1]}'
                         )
+                        break
                     except Exception as e:
                         gid = int(info['gid'])
                         sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
