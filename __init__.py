@@ -1,5 +1,6 @@
 from json import load, dump
 import json
+import random
 from nonebot import get_bot, on_command
 from hoshino import priv
 from hoshino.typing import NoticeSession, MessageSegment
@@ -72,6 +73,7 @@ acfirst = False
 
 async def captchaVerifier(gt, challenge, userid):
     global acfirst, validating
+    sid = hoshino.get_self_ids() # 获取bot账号列表
     if not acfirst:
         await captcha_lck.acquire()
         acfirst = True
@@ -79,11 +81,17 @@ async def captchaVerifier(gt, challenge, userid):
     if acinfo['admin'] == 0:
         bot.logger.error('captcha is required while admin qq is not set, so the login can\'t continue')
     else:
-        url = f"https://help.tencentbot.top/geetest/?captcha_type=1&challenge={challenge}&gt={gt}&userid={userid}&gs=1"
-        await bot.send_private_msg(
-            user_id = acinfo['admin'],
-            message = f'pcr账号登录需要验证码，请完成以下链接中的验证内容后将第一行validate=后面的内容复制，并用指令/pcrval xxxx将内容发送给机器人完成验证\n验证链接：{url}'
-        )
+        if len(sid) > 0: # 若bot账号数量大于0，则随机选择一个号向管理员QQ发送私聊消息（记得先加bot好友！）
+            sid = random.choice(sid)
+            url = f"https://help.tencentbot.top/geetest/?captcha_type=1&challenge={challenge}&gt={gt}&userid={userid}&gs=1"
+            try:
+                await bot.send_private_msg(
+                    self_id = sid,
+                    user_id = acinfo['admin'],
+                    message = f'pcr账号登录需要验证码，请完成以下链接中的验证内容后将第一行validate=后面的内容复制，并用指令/pcrval xxxx将内容发送给机器人完成验证\n验证链接：{url}'
+                )
+            except Exception as e:
+                hoshino.logger.error(f'向管理员QQ发送私聊验证码消息失败：{type(e)}')
     validating = True
     await captcha_lck.acquire()
     validating = False
