@@ -140,7 +140,6 @@ async def group_num(bot, ev):
                 group_id=gid,
                 message=f"本Bot目前正在为【{len(gl)}】个群服务"
                 )
-                break
             except Exception as e:
                 sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
 
@@ -186,6 +185,28 @@ async def on_arena_bind(bot, ev):
         save_binds()
 
     await bot.finish(ev, '竞技场绑定成功', at_sender=True)
+
+'''
+@sv.on_rex(r'^竞技场绑定他人 ?(\d{13})$')
+async def on_arena_bind(bot, ev):
+    global binds, lck
+
+    async with lck:
+        uid = '203613136'
+        last = binds[uid] if uid in binds else None
+
+        binds[uid] = {
+            'id': ev['match'].group(1),
+            'uid': uid,
+            'gid': str(ev['group_id']),
+            'arena_on': last is None or last['arena_on'],
+            'grand_arena_on': last is None or last['grand_arena_on'],
+        }
+        save_binds()
+
+    await bot.finish(ev, '竞技场绑定他人成功', at_sender=True)
+'''
+
 
 @sv.on_rex(r'^竞技场查询 ?(\d{13})?$')
 async def on_query_arena(bot, ev):
@@ -333,14 +354,24 @@ async def delete_arena_sub(bot,ev):
 async def send_arena_sub_status(bot,ev):
     global binds, lck
     uid = str(ev['user_id'])
+    
+    #开改
 
+    #改完
     
     if not uid in binds:
         await bot.send(ev,'您还未绑定竞技场', at_sender=True)
     else:
+    #改
+        #uid = str(ev['user_id'])
+        id = binds[uid]['id']
+        res = await query(id)
+        #name = res['user_info']["user_name"]
+    #改   
         info = binds[uid]
         await bot.finish(ev,
     f'''
+    昵称：{res['user_info']["user_name"]}
     当前竞技场绑定ID：{info['id']}
     竞技场订阅：{'开启' if info['arena_on'] else '关闭'}
     公主竞技场订阅：{'开启' if info['grand_arena_on'] else '关闭'}''',at_sender=True)
@@ -370,7 +401,14 @@ async def on_arena_schedule():
 
             last = cache[uid]
             cache[uid] = res
-
+            
+            #改
+            id_temp = binds[uid]['id']
+            res_temp = await query(id_temp)
+            name = res_temp['user_info']["user_name"]
+            sv.logger.info(f'查了一下：{name} JJC{last[0]} PJJC{last[1]}')
+            #改
+            
             # 两次间隔排名变化且开启了相关订阅就记录到数据库
             if res[0] != last[0] and info['arena_on']:
                 JJCH._add(int(info["id"]), 1, last[0], res[0])
@@ -384,15 +422,22 @@ async def on_arena_schedule():
             if res[0] > last[0] and info['arena_on']:
                 for sid in hoshino.get_self_ids():
                     try:
+                        #改
+                        #uid = str(ev['user_id'])
+                        #id = binds[uid]['id']
+                        #res = await query(id)
+                        #name = res['user_info']["user_name"]
+                        #改
                         await bot.send_group_msg(
                             self_id = sid,
                             group_id = int(info['gid']),
-                            message = f'[CQ:at,qq={info["uid"]}]jjc：{last[0]}->{res[0]} ▼{res[0]-last[0]}'
+                            message = f'[CQ:at,qq={info["uid"]}]昵称：{name}jjc：{last[0]}->{res[0]} ▼{res[0]-last[0]}'
                         )
-                        break
                     except Exception as e:
                         gid = int(info['gid'])
                         sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
+                        #sv.logger.info(f'昵称：{name}jjc：{last[0]}->{res[0]} ▼{res[0]-last[0]}')
+
 
             if res[1] > last[1] and info['grand_arena_on']:
                 for sid in hoshino.get_self_ids():
@@ -400,9 +445,8 @@ async def on_arena_schedule():
                         await bot.send_group_msg(
                             self_id = sid,
                             group_id = int(info['gid']),
-                            message = f'[CQ:at,qq={info["uid"]}]pjjc：{last[1]}->{res[1]} ▼{res[1]-last[1]}'
+                            message = f'[CQ:at,qq={info["uid"]}]昵称：{name}pjjc：{last[1]}->{res[1]} ▼{res[1]-last[1]}'
                         )
-                        break
                     except Exception as e:
                         gid = int(info['gid'])
                         sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
@@ -413,9 +457,8 @@ async def on_arena_schedule():
                         await bot.send_group_msg(
                             self_id = sid,
                             group_id = int(info['gid']),
-                            message = f'[CQ:at,qq={info["uid"]}]jjc：{last[0]}->{res[0]} ▲{last[0]-res[0]}'
+                            message = f'[CQ:at,qq={info["uid"]}]昵称：{name}jjc：{last[0]}->{res[0]} ▲{last[0]-res[0]}'
                         )
-                        break
                     except Exception as e:
                         gid = int(info['gid'])
                         sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
@@ -426,9 +469,8 @@ async def on_arena_schedule():
                         await bot.send_group_msg(
                             self_id = sid,
                             group_id = int(info['gid']),
-                            message = f'[CQ:at,qq={info["uid"]}]pjjc：{last[1]}->{res[1]} ▲{last[1]-res[1]}'
+                            message = f'[CQ:at,qq={info["uid"]}]昵称：{name}pjjc：{last[1]}->{res[1]} ▲{last[1]-res[1]}'
                         )
-                        break
                     except Exception as e:
                         gid = int(info['gid'])
                         sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
@@ -452,10 +494,11 @@ async def leave_notice(session: NoticeSession):
         bind_cache = deepcopy(binds)
         info = bind_cache[uid]
         if uid in binds and info['gid'] == gid:
-            delete_arena(uid)
+            #改
+            #delete_arena(uid)
             await bot.send_group_msg(
                 group_id = int(info['gid']),
-                message = f'{uid}退群了，已自动删除其绑定在本群的竞技场订阅推送'
+                message = f'{uid}退群了，已自动删除其绑定在本群的竞技场订阅推送(并没有）'
             )
 
 @sv.on_prefix('竞技场换头像框', '更换竞技场头像框', '更换头像框')
