@@ -5,6 +5,7 @@ import time
 from pathlib import Path
 import zhconv
 from hoshino.aiorequests import run_sync_func
+from hoshino import util
 
 path = Path(__file__).parent # 获取文件所在目录的绝对路径
 font_cn_path = str(path / 'fonts' / 'SourceHanSansCN-Medium.otf')  # Path是路径对象，必须转为str之后ImageFont才能读取
@@ -68,12 +69,17 @@ def _generate_info_pic_internal(data, uid):
 
     # 资料卡 个人信息
     user_name_text = _TraditionalToSimplified(data["user_info"]["user_name"])
+    user_name_text = util.filt_message(str(user_name_text))
     team_level_text = _TraditionalToSimplified(data["user_info"]["team_level"])
+    team_level_text = util.filt_message(str(team_level_text))
     total_power_text = _TraditionalToSimplified(
         data["user_info"]["total_power"])
+    total_power_text = util.filt_message(str(total_power_text))
     clan_name_text = _TraditionalToSimplified(data["clan_name"])
-    user_comment_arr = _cut_str(_TraditionalToSimplified(
-        data["user_info"]["user_comment"]), 25)
+    clan_name_text = util.filt_message(str(clan_name_text))
+    user_comment_arr = _TraditionalToSimplified(data["user_info"]["user_comment"])
+    user_comment_arr = util.filt_message(str(user_comment_arr))
+    user_comment_arr = _cut_str(user_comment_arr, 25)
     last_login_time_text = _TraditionalToSimplified(time.strftime(
         "%Y/%m/%d %H:%M:%S", time.localtime(data["user_info"]["last_login_time"]))).split(' ')
 

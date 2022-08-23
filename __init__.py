@@ -2,7 +2,7 @@ from json import load, dump
 import json
 import random
 from nonebot import get_bot, on_command
-from hoshino import priv
+from hoshino import priv, util
 from hoshino.typing import NoticeSession, MessageSegment
 from .pcrclient import pcrclient, ApiException, bsdkclient
 from asyncio import Lock
@@ -218,7 +218,7 @@ async def on_query_arena(bot, ev):
             last_login_str = time.strftime('%Y-%m-%d %H:%M:%S',last_login_date)
             
             await bot.finish(ev, 
-f'''昵称：{res['user_info']["user_name"]}
+f'''昵称：{util.filt_message(str(res['user_info']["user_name"]))}
 jjc排名：{res['user_info']["arena_rank"]}
 pjjc排名：{res['user_info']["grand_arena_rank"]}
 最后登录：{last_login_str}''', at_sender=False)
