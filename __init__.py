@@ -1,11 +1,12 @@
-from json import load, dump
+from json import load, dump, loads
 import json
 import random
+from requests import get
 from nonebot import get_bot, on_command
 from hoshino import priv, util
 from hoshino.typing import NoticeSession, MessageSegment
 from .pcrclient import pcrclient, ApiException, bsdkclient
-from asyncio import Lock
+from asyncio import Lock, sleep
 from os.path import dirname, join, exists
 from copy import deepcopy
 from traceback import format_exc
@@ -71,30 +72,77 @@ validate = None
 validating = False
 acfirst = False
 
-async def captchaVerifier(gt, challenge, userid):
-    global acfirst, validating
+
+async def sendToAdmin(msg):
     sid = hoshino.get_self_ids() # 获取bot账号列表
-    if not acfirst:
-        await captcha_lck.acquire()
-        acfirst = True
-    
     if acinfo['admin'] == 0:
-        bot.logger.error('captcha is required while admin qq is not set, so the login can\'t continue')
+        bot.logger.error('captcha is required while admin qq is not set')
     else:
         if len(sid) > 0: # 若bot账号数量大于0，则随机选择一个号向管理员QQ发送私聊消息（记得先加bot好友！）
             sid = random.choice(sid)
-            url = f"https://help.tencentbot.top/geetest/?captcha_type=1&challenge={challenge}&gt={gt}&userid={userid}&gs=1"
             try:
                 await bot.send_private_msg(
                     self_id = sid,
                     user_id = acinfo['admin'],
-                    message = f'pcr账号登录需要验证码，请完成以下链接中的验证内容后将第一行validate=后面的内容复制，并用指令/pcrval xxxx将内容发送给机器人完成验证\n验证链接：{url}'
+                    message = msg
                 )
             except Exception as e:
                 hoshino.logger.error(f'向管理员QQ发送私聊验证码消息失败：{type(e)}')
+
+async def captchaVerifierV2(gt, challenge, userid):
+    global validating
+
     validating = True
-    await captcha_lck.acquire()
+    captcha_cnt = 0
+    while captcha_cnt < 5:
+        captcha_cnt += 1
+        try:
+            print(f'测试新版自动过码中，当前尝试第{captcha_cnt}次。')
+
+            await sleep(1)
+            uuid = loads(await (await get(url="https://pcrd.tencentbot.top/geetest")).content)["uuid"]
+            print(f'uuid={uuid}')
+
+            ccnt = 0
+            while ccnt < 3:
+                ccnt += 1
+                await sleep(5)
+                res = await (await get(url=f"https://pcrd.tencentbot.top/check/{uuid}")).content
+                res = loads(res)
+                if "queue_num" in res:
+                    nu = res["queue_num"]
+                    print(f"queue_num={nu}")
+                    tim = min(int(nu), 3) * 5
+                    print(f"sleep={tim}")
+                    await sleep(tim)
+                else:
+                    info = res["info"]
+                    if info in ["fail", "url invalid"]:
+                        break
+                    elif info == "in running":
+                        await sleep(5)
+                    else:
+                        print(f'info={info}')
+                        validating = False
+                        return info["challenge"], info["gt_user_id"], info["validate"]
+        except:
+            pass
+
+    await sendToAdmin(f'自动过码多次尝试失败，可能为服务器错误，自动切换为手动。\n确实服务器无误后，可发送/pcrval重新触发自动过码。')
+    validate = await captchaVerifier(gt, challenge, userid)
     validating = False
+    return challenge, userid, validate
+
+async def captchaVerifier(gt, challenge, userid):
+    global acfirst
+    if not acfirst:
+        await captcha_lck.acquire()
+        acfirst = True
+    
+    url = f"https://help.tencentbot.top/geetest/?captcha_type=1&challenge={challenge}&gt={gt}&userid={userid}&gs=1"
+    sendToAdmin( f'pcr账号登录需要验证码，请完成以下链接中的验证内容后将第一行validate=后面的内容复制，并用指令/pcrval xxxx将内容发送给机器人完成验证\n验证链接：{url}')
+   
+    await captcha_lck.acquire()
     return validate
 
 async def errlogger(msg):
@@ -103,7 +151,7 @@ async def errlogger(msg):
         message = f'pcrjjc2登录错误：{msg}'
     )
 
-bclient = bsdkclient(acinfo, captchaVerifier, errlogger)
+bclient = bsdkclient(acinfo, captchaVerifierV2, errlogger)
 client = pcrclient(bclient)
 
 qlck = Lock()

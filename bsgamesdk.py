@@ -93,8 +93,8 @@ async def login(bili_account,bili_pwd, make_captch):
     login_sta= await login1(bili_account,bili_pwd)
     if "access_key" not in login_sta:
         cap=await captch()
-        captch_done=await make_captch(cap['gt'],cap['challenge'],cap['gt_user_id'])
-        login_sta=await login2(bili_account,bili_pwd,cap["challenge"],cap['gt_user_id'],captch_done)
+        challenge, gt_user_id, captch_done=await make_captch(cap['gt'],cap['challenge'],cap['gt_user_id'])
+        login_sta=await login2(bili_account,bili_pwd,challenge,gt_user_id,captch_done)
         return login_sta
     else:
         return login_sta
