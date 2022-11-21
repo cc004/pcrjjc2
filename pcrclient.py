@@ -13,7 +13,7 @@ from datetime import datetime
 from dateutil.parser import parse
 from os.path import dirname, join, exists
 
-apiroot = 'http://l3-prod-all-gs-gzlj.bilibiligame.net'
+apiroot = 'https://l3-prod-all-gs-gzlj.bilibiligame.net'
 curpath = dirname(__file__)
 config = join(curpath, 'version.txt')
 version = "4.9.4"
