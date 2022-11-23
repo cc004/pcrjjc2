@@ -479,10 +479,12 @@ async def leave_notice(session: NoticeSession):
     uid = str(session.ctx['user_id'])
     gid = str(session.ctx['group_id'])
     bot = get_bot()
+    if uid not in binds:
+        return
     async with lck:
         bind_cache = deepcopy(binds)
         info = bind_cache[uid]
-        if uid in binds and info['gid'] == gid:
+        if info['gid'] == gid:
             delete_arena(uid)
             await bot.send_group_msg(
                 group_id = int(info['gid']),
