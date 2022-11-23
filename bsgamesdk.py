@@ -5,7 +5,7 @@ import time
 import hashlib
 from . import rsacr
 import urllib
-from hoshino.aiorequests import post
+from .aiorequests import post
 
 bililogin="https://line1-sdk-center-login-sh.biligame.net/"
 
@@ -91,7 +91,7 @@ def make_captch(gt,challenge,gt_user):
 async def login(bili_account,bili_pwd, make_captch):
     print(f'logging in with acc={bili_account}, pwd = {bili_pwd}')
     login_sta= await login1(bili_account,bili_pwd)
-    if "access_key" not in login_sta:
+    if login_sta['code'] == 200000: # secondary verify
         cap=await captch()
         challenge, gt_user_id, captch_done=await make_captch(cap['gt'],cap['challenge'],cap['gt_user_id'])
         login_sta=await login2(bili_account,bili_pwd,challenge,gt_user_id,captch_done)

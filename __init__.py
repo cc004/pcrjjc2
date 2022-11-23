@@ -1,7 +1,7 @@
 from json import load, dump, loads
 import json
 import random
-from requests import get
+from .aiorequests import get
 from nonebot import get_bot, on_command
 from hoshino import priv, util
 from hoshino.typing import NoticeSession, MessageSegment

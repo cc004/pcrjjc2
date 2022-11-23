@@ -1,6 +1,6 @@
 from mmap import ACCESS_COPY
 from msgpack import packb, unpackb
-from hoshino.aiorequests import post
+from .aiorequests import post
 from random import randint
 from json import loads
 from hashlib import md5
@@ -159,16 +159,18 @@ class pcrclient:
                 self.viewer_id = data_headers['viewer_id']
             if "/check/game_start" == apiurl and "store_url" in data_headers:
                 global version
-                version = data_headers["store_url"].split('_')[1][:-4]
+                version = search(r'_v?([4-9]\.\d\.\d)(\.\d)*_', data_headers["store_url"]).group(1)
                 defaultHeaders['APP-VER'] = version
                 with open(config, "w", encoding='utf-8') as fp:
                     print(version, file=fp)
-
+                raise ApiException(f"版本已更新:{version}", 0)
         
             data = response['data']
             if not noerr and 'server_error' in data:
                 data = data['server_error']
                 print(f'pcrclient: {apiurl} api failed {data}')
+                if "store_url" in data_headers:
+                    raise ApiException(f"版本自动更新失败：({data['message']})", data['status'])
                 raise ApiException(data['message'], data['status'])
 
             print(f'pcrclient: {apiurl} api called')
