@@ -161,6 +161,7 @@ class pcrclient:
                 global version
                 version = search(r'_v?([4-9]\.\d\.\d).*?_', data_headers["store_url"]).group(1)
                 defaultHeaders['APP-VER'] = version
+                self.headers['APP-VER'] = version
                 with open(config, "w", encoding='utf-8') as fp:
                     print(version, file=fp)
                 raise ApiException(f"版本已更新:{version}", 0)
