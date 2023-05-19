@@ -4,6 +4,9 @@
 
 **本项目基于AGPL v3协议开源**
 
+## 不遵守协议的耻辱柱
+- **[@watermellye](https://github.com/watermellye)**
+
 ## 配置方法
 
 1. 克隆本仓库：
