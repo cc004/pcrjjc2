@@ -140,7 +140,7 @@ async def captchaVerifier(gt, challenge, userid):
         acfirst = True
     
     url = f"https://help.tencentbot.top/geetest/?captcha_type=1&challenge={challenge}&gt={gt}&userid={userid}&gs=1"
-    sendToAdmin( f'pcr账号登录需要验证码，请完成以下链接中的验证内容后将第一行validate=后面的内容复制，并用指令/pcrval xxxx将内容发送给机器人完成验证\n验证链接：{url}')
+    await sendToAdmin( f'pcr账号登录需要验证码，请完成以下链接中的验证内容后将第一行validate=后面的内容复制，并用指令/pcrval xxxx将内容发送给机器人完成验证\n验证链接：{url}')
    
     await captcha_lck.acquire()
     return validate
