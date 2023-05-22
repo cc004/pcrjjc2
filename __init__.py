@@ -74,7 +74,7 @@ acfirst = False
 
 
 async def sendToAdmin(msg):
-    sid = hoshino.get_self_ids() # 获取bot账号列表
+    sid = [x for x in hoshino.get_self_ids()] # 获取bot账号列表
     if acinfo['admin'] == 0:
         bot.logger.error('captcha is required while admin qq is not set')
     else:
