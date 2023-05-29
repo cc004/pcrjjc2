@@ -147,7 +147,7 @@ async def captchaVerifier(gt, challenge, userid):
         acfirst = True
 
     online_url_head = "https://cc004.github.io/geetest/geetest.html"
-    local_url_head = f"{public_address}/geetest/"
+    local_url_head = f"{public_address}/geetest"
     url = f"?captcha_type=1&challenge={challenge}&gt={gt}&userid={userid}&gs=1"
     await sendToAdmin(
         f'pcr账号登录需要验证码，请完成以下链接中的验证内容后将第一行validate=后面的内容复制，'
