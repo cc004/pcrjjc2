@@ -12,10 +12,9 @@ from hoshino import priv, util
 from hoshino.typing import NoticeSession, MessageSegment
 from hoshino.util import pic2b64
 from nonebot import get_bot, on_command
-
+from hoshino import config as bot_config
 from .aiorequests import get
 from .create_img import generate_info_pic, generate_support_pic
-from .geetest import public_address
 from .jjchistory import *
 from .pcrclient import pcrclient, ApiException, bsdkclient
 from .safeservice import SafeService
@@ -76,6 +75,18 @@ validate = None
 validating = False
 acfirst = False
 
+
+async def get_public_address():
+    if hasattr(bot_config, "PUBLIC_ADDRESS") and getattr(bot_config, "PUBLIC_ADDRESS"):
+        return getattr(bot_config, 'PUBLIC_ADDRESS')
+    elif hasattr(bot_config, "IP") and getattr(bot_config, "IP"):
+        return f"{getattr(bot_config, 'IP')}:{getattr(bot_config, 'PORT')}"
+    else:
+        try:
+            res = await (await get(url=f"https://4.ipw.cn", timeout=3)).text
+            return f"{res}:{getattr(bot_config, 'PORT')}"
+        except:
+            return "获取bot地址失败"
 
 async def sendToAdmin(msg):
     sid = [x for x in hoshino.get_self_ids()]  # 获取bot账号列表
@@ -147,7 +158,7 @@ async def captchaVerifier(gt, challenge, userid):
         acfirst = True
 
     online_url_head = "https://cc004.github.io/geetest/geetest.html"
-    local_url_head = f"{public_address}/geetest"
+    local_url_head = f"{await get_public_address()}/geetest"
     url = f"?captcha_type=1&challenge={challenge}&gt={gt}&userid={userid}&gs=1"
     await sendToAdmin(
         f'pcr账号登录需要验证码，请完成以下链接中的验证内容后将第一行validate=后面的内容复制，'
