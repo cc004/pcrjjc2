@@ -34,11 +34,12 @@ bot_.server_app.register_blueprint(geetest_validate)
 @bot_.on_startup
 async def get_real_ip():
     global public_address
-    if config.public_address:
-        public_address = config.public_address
-    elif config.IP:
-        public_address = f"{config.IP}:{config.PORT}"
-    else:
+    try:
+        if config.public_address:
+            public_address = config.public_address
+        elif config.IP:
+            public_address = f"{config.IP}:{config.PORT}"
+    except AttributeError:
         from . import send_to_admin
         try:
             resp = await aiorequests.get(url="https://4.ipw.cn", timeout=3)
@@ -50,3 +51,4 @@ async def get_real_ip():
             hoshino.logger.error(f"获取公网IP失败\n{e}")
             await send_to_admin(f"获取公网IP失败，使用默认IP\n{e}")
     hoshino.logger.info(f"current public address: {public_address}")
+    
