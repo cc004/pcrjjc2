@@ -153,7 +153,8 @@ async def captchaVerifier(gt, challenge, userid):
         f'pcr账号登录需要验证码，请完成以下链接中的验证内容后将第一行validate=后面的内容复制，'
         f'并用指令/pcrval xxxx将内容发送给机器人完成验证'
         f'\n验证链接头：{local_url_head}链接{url}，备用链接头：{online_url_head}'
-        f'\n为避免tx网页安全验证使验证码过期，请手动拼接链接头和链接'
+        f'\n为避免tx网页安全验证使验证码过期，请手动拼接链接头和链接\n'
+        f'注意：如果你没有公网IP，请使用127.0.0.1:8080/geetest作为你的链接头！'
     )
 
     await captcha_lck.acquire()
