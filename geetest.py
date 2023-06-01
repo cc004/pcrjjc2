@@ -46,10 +46,10 @@ async def get_real_ip() -> str:
         #     real_ip = await resp.text
         #     public_address = f"{real_ip}:{config.PORT}"
         #     hoshino.logger.info(f"using fetched real ip as public address: {public_address}")
-        #     await send_to_admin(f"成功获取公网IP：{real_ip}\n注意：本IP仅在你有公网IP时才有效！如果你没有公网IP，请使用127.0.0.1作为你的IP！")
+        #     await sendToAdmin(f"成功获取公网IP：{real_ip}\n注意：本IP仅在你有公网IP时才有效！如果你没有公网IP，请使用127.0.0.1作为你的IP！")
         # except Exception as e:
         #     hoshino.logger.error(f"获取公网IP失败\n{e}")
-        #     await send_to_admin(f"获取公网IP失败，使用默认IP\n{e}")
+        #     await sendToAdmin(f"获取公网IP失败，使用默认IP\n{e}")
         pass
     hoshino.logger.info(f"current public address: {public_address}")
     return public_address
