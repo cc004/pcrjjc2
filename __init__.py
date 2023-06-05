@@ -15,7 +15,7 @@ from nonebot import get_bot, on_command
 
 from .aiorequests import get
 from .create_img import generate_info_pic, generate_support_pic
-from .geetest import public_address
+from .geetest import get_public_address
 from .jjchistory import *
 from .pcrclient import pcrclient, ApiException, bsdkclient
 from .safeservice import SafeService
@@ -147,13 +147,15 @@ async def captchaVerifier(gt, challenge, userid):
         acfirst = True
 
     online_url_head = "https://cc004.github.io/geetest/geetest.html"
-    local_url_head = f"{public_address}/geetest"
+#     local_url_head = f"{await get_public_address()}/geetest"
+    local_url_head = f"{get_public_address()}/geetest"
     url = f"?captcha_type=1&challenge={challenge}&gt={gt}&userid={userid}&gs=1"
     await sendToAdmin(
         f'pcr账号登录需要验证码，请完成以下链接中的验证内容后将第一行validate=后面的内容复制，'
         f'并用指令/pcrval xxxx将内容发送给机器人完成验证'
         f'\n验证链接头：{local_url_head}链接{url}，备用链接头：{online_url_head}'
-        f'\n为避免tx网页安全验证使验证码过期，请手动拼接链接头和链接'
+        f'\n为避免tx网页安全验证使验证码过期，请手动拼接链接头和链接\n'
+        f'注意：如果你没有公网IP，请使用127.0.0.1:8080/geetest作为你的链接头！'
     )
 
     await captcha_lck.acquire()
