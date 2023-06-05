@@ -32,7 +32,8 @@ bot_.server_app.register_blueprint(geetest_validate)
 
 
 @bot_.on_startup
-async def get_real_ip() -> str:
+# async def get_real_ip() -> str:
+def get_real_ip() -> str:
     public_address = f"127.0.0.1:{config.PORT}"
     try:
         if config.public_address:
@@ -55,6 +56,8 @@ async def get_real_ip() -> str:
     return public_address
 
 
-async def get_public_address():
-    return await get_real_ip()
+# async def get_public_address():
+def get_public_address():
+#     return await get_real_ip()
+    return get_real_ip()
     
