@@ -105,20 +105,34 @@ async def captchaVerifierV2(gt, challenge, userid):
             print(f'测试新版自动过码中，当前尝试第{captcha_cnt}次。')
 
             await sleep(1)
-            uuid = loads(await (await get(url="https://pcrd.tencentbot.top/geetest")).content)["uuid"]
-            print(f'uuid={uuid}')
 
+            url = f"https://pcrd.tencentbot.top/geetest_renew?captcha_type=1&challenge={challenge}&gt={gt}&userid={userid}&gs=1"
+            header = {"Content-Type": "application/json", "User-Agent": "pcrjjc2/1.0.0"}
+            # uuid = loads(await (await get(url="https://pcrd.tencentbot.top/geetest")).content)["uuid"]
+            # print(f'uuid={uuid}')
+
+            res = await (await aiorequests.get(url=url, headers=header)).content
+            res = loads(res)
+            uuid = res["uuid"]
+            msg = [f"uuid={uuid}"]
+            
             ccnt = 0
-            while ccnt < 3:
+            while ccnt < 10:
                 ccnt += 1
-                await sleep(5)
-                res = await (await get(url=f"https://pcrd.tencentbot.top/check/{uuid}")).content
+                res = await (await aiorequests.get(url=f"https://pcrd.tencentbot.top/check/{uuid}", headers=header)).content
+                #if str(res.status_code) != "200":
+                #    continue
+                print(res)
                 res = loads(res)
                 if "queue_num" in res:
                     nu = res["queue_num"]
-                    print(f"queue_num={nu}")
-                    tim = min(int(nu), 3) * 5
-                    print(f"sleep={tim}")
+                    msg.append(f"queue_num={nu}")
+                    tim = min(int(nu), 3) * 10
+                    msg.append(f"sleep={tim}")
+                    #await bot.send_private_msg(user_id=acinfo['admin'], message=f"thread{ordd}: \n" + "\n".join(msg))
+                    print(f"pcrjjc2:\n" + "\n".join(msg))
+                    msg = []
+                    # print(f'farm: {uuid} in queue, sleep {tim} seconds')
                     await sleep(tim)
                 else:
                     info = res["info"]
@@ -126,10 +140,35 @@ async def captchaVerifierV2(gt, challenge, userid):
                         break
                     elif info == "in running":
                         await sleep(5)
-                    else:
+                    elif 'validate' in info:
                         print(f'info={info}')
                         validating = False
                         return info["challenge"], info["gt_user_id"], info["validate"]
+                if ccnt >= 10:
+                    raise Exception("Captcha failed")
+
+            # ccnt = 0
+            # while ccnt < 3:
+            #     ccnt += 1
+            #     await sleep(5)
+            #     res = await (await get(url=f"https://pcrd.tencentbot.top/check/{uuid}")).content
+            #     res = loads(res)
+            #     if "queue_num" in res:
+            #         nu = res["queue_num"]
+            #         print(f"queue_num={nu}")
+            #         tim = min(int(nu), 3) * 5
+            #         print(f"sleep={tim}")
+            #         await sleep(tim)
+            #     else:
+            #         info = res["info"]
+            #         if info in ["fail", "url invalid"]:
+            #             break
+            #         elif info == "in running":
+            #             await sleep(5)
+            #         else:
+            #             print(f'info={info}')
+            #             validating = False
+            #             return info["challenge"], info["gt_user_id"], info["validate"]
         except:
             pass
 
