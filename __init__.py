@@ -330,7 +330,7 @@ async def on_query_arena(bot, ev):
             last_login_str = time.strftime('%Y-%m-%d %H:%M:%S', last_login_date)
 
             await bot.finish(ev,
-                             f'''昵称：{util.filt_message(str(res['user_info']["user_name"]))}
+                            f'''昵称：{util.filt_message(str(res['user_info']["user_name"]))}
 jjc排名：{res['user_info']["arena_rank"]}
 pjjc排名：{res['user_info']["grand_arena_rank"]}
 最后登录：{last_login_str}''', at_sender=False)
@@ -466,7 +466,7 @@ async def send_arena_sub_status(bot, ev):
     else:
         info = binds[uid]
         await bot.finish(ev,
-                         f'''
+                        f'''
     当前竞技场绑定ID：{info['id']}
     竞技场订阅：{'开启' if info['arena_on'] else '关闭'}
     公主竞技场订阅：{'开启' if info['grand_arena_on'] else '关闭'}''', at_sender=True)
@@ -486,6 +486,9 @@ async def on_arena_schedule():
         info = bind_cache[uid]
         try:
             sv.logger.info(f'querying {info["id"]} for {info["uid"]}')
+            # 调试用
+            sv.logger.info(bot.config.group_configs[int(info['gid'])].plugins.enabled)
+            # 调试用
             res = await query(info['id'])
             res = (res['user_info']['arena_rank'], res['user_info']['grand_arena_rank'])
 
@@ -508,29 +511,31 @@ async def on_arena_schedule():
 
             if res[0] > last[0] and info['arena_on']:
                 for sid in hoshino.get_self_ids():
-                    try:
-                        await bot.send_group_msg(
-                            self_id=sid,
-                            group_id=int(info['gid']),
-                            message=f'[CQ:at,qq={info["uid"]}]jjc：{last[0]}->{res[0]} ▼{res[0] - last[0]}'
-                        )
-                        break
-                    except Exception as e:
-                        gid = int(info['gid'])
-                        sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
+                    if '竞技场推送' in bot.config.group_configs[int(info['gid'])].plugins.enabled:
+                        try:
+                            await bot.send_group_msg(
+                                self_id=sid,
+                                group_id=int(info['gid']),
+                                message=f'[CQ:at,qq={info["uid"]}]jjc：{last[0]}->{res[0]} ▼{res[0] - last[0]}'
+                            )
+                            break
+                        except Exception as e:
+                            gid = int(info['gid'])
+                            sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
 
             if res[1] > last[1] and info['grand_arena_on']:
                 for sid in hoshino.get_self_ids():
-                    try:
-                        await bot.send_group_msg(
-                            self_id=sid,
-                            group_id=int(info['gid']),
-                            message=f'[CQ:at,qq={info["uid"]}]pjjc：{last[1]}->{res[1]} ▼{res[1] - last[1]}'
-                        )
-                        break
-                    except Exception as e:
-                        gid = int(info['gid'])
-                        sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
+                    if '竞技场推送' in bot.config.group_configs[int(info['gid'])].plugins.enabled:
+                        try:
+                            await bot.send_group_msg(
+                                self_id=sid,
+                                group_id=int(info['gid']),
+                                message=f'[CQ:at,qq={info["uid"]}]pjjc：{last[1]}->{res[1]} ▼{res[1] - last[1]}'
+                            )
+                            break
+                        except Exception as e:
+                            gid = int(info['gid'])
+                            sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
 
         except ApiException as e:
             sv.logger.info(f'对{info["id"]}的检查出错\n{format_exc()}')
