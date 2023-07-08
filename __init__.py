@@ -39,7 +39,8 @@ sv_help = '''
 [清空竞技场订阅] 清空所有绑定的账号(仅限主人)
 '''.strip()
 
-sv = SafeService('竞技场推送', help_=sv_help, bundle='pcr查询')
+sv_name = '竞技场推送'
+sv = SafeService(sv_name, help_=sv_help, bundle='pcr查询')
 
 
 @sv.on_fullmatch('竞技场帮助', only_to_me=False)
@@ -476,7 +477,9 @@ async def send_arena_sub_status(bot, ev):
 async def on_arena_schedule():
     global cache, binds, lck
     bot = get_bot()
-
+    # all_services = SafeService.get_loaded_services()
+    on_g = map(str, SafeService.get_loaded_services()[sv_name].enable_group)
+    off_g = map(str, SafeService.get_loaded_services()[sv_name].disable_group)
     bind_cache = {}
 
     async with lck:
@@ -511,7 +514,7 @@ async def on_arena_schedule():
 
             if res[0] > last[0] and info['arena_on']:
                 for sid in hoshino.get_self_ids():
-                    if '竞技场推送' in bot.config.group_configs[int(info['gid'])].plugins.enabled:
+                    if (int(info['gid']) in on_g) or (not (int(info['gid']) in off_g)):
                         try:
                             await bot.send_group_msg(
                                 self_id=sid,
@@ -525,7 +528,7 @@ async def on_arena_schedule():
 
             if res[1] > last[1] and info['grand_arena_on']:
                 for sid in hoshino.get_self_ids():
-                    if '竞技场推送' in bot.config.group_configs[int(info['gid'])].plugins.enabled:
+                    if (int(info['gid']) in on_g) or (not (int(info['gid']) in off_g)):
                         try:
                             await bot.send_group_msg(
                                 self_id=sid,
