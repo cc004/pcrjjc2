@@ -490,7 +490,8 @@ async def on_arena_schedule():
         try:
             sv.logger.info(f'querying {info["id"]} for {info["uid"]}')
             # 调试用
-            sv.logger.info(bot.config.group_configs[int(info['gid'])].plugins.enabled)
+            sv.logger.info(on_g)
+            sv.logger.info(off_g)
             # 调试用
             res = await query(info['id'])
             res = (res['user_info']['arena_rank'], res['user_info']['grand_arena_rank'])
