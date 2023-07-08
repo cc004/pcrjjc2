@@ -103,7 +103,7 @@ async def captchaVerifierV2(gt, challenge, userid):
     while captcha_cnt < 5:
         captcha_cnt += 1
         try:
-            print(f'测试新版自动过码中，当前尝试第{captcha_cnt}次。')
+            sv.logger.info(f'测试新版自动过码中，当前尝试第{captcha_cnt}次。')
 
             await sleep(1)
 
@@ -123,7 +123,7 @@ async def captchaVerifierV2(gt, challenge, userid):
                 res = await (await aiorequests.get(url=f"https://pcrd.tencentbot.top/check/{uuid}", headers=header)).content
                 #if str(res.status_code) != "200":
                 #    continue
-                print(res)
+                # print(res)
                 res = loads(res)
                 if "queue_num" in res:
                     nu = res["queue_num"]
@@ -131,7 +131,7 @@ async def captchaVerifierV2(gt, challenge, userid):
                     tim = min(int(nu), 3) * 10
                     msg.append(f"sleep={tim}")
                     #await bot.send_private_msg(user_id=acinfo['admin'], message=f"thread{ordd}: \n" + "\n".join(msg))
-                    print(f"pcrjjc2:\n" + "\n".join(msg))
+                    # print(f"pcrjjc2:\n" + "\n".join(msg))
                     msg = []
                     # print(f'farm: {uuid} in queue, sleep {tim} seconds')
                     await sleep(tim)
@@ -142,7 +142,7 @@ async def captchaVerifierV2(gt, challenge, userid):
                     elif info == "in running":
                         await sleep(5)
                     elif 'validate' in info:
-                        print(f'info={info}')
+                        # print(f'info={info}')
                         validating = False
                         return info["challenge"], info["gt_user_id"], info["validate"]
                 if ccnt >= 10:
@@ -489,10 +489,6 @@ async def on_arena_schedule():
         info = bind_cache[uid]
         try:
             sv.logger.info(f'querying {info["id"]} for {info["uid"]}')
-            # 调试用
-            sv.logger.info(on_g)
-            sv.logger.info(off_g)
-            # 调试用
             res = await query(info['id'])
             res = (res['user_info']['arena_rank'], res['user_info']['grand_arena_rank'])
 
