@@ -39,7 +39,8 @@ sv_help = '''
 [清空竞技场订阅] 清空所有绑定的账号(仅限主人)
 '''.strip()
 
-sv = SafeService('竞技场推送', help_=sv_help, bundle='pcr查询')
+sv_name = '竞技场推送'
+sv = SafeService(sv_name, help_=sv_help, bundle='pcr查询')
 
 
 @sv.on_fullmatch('竞技场帮助', only_to_me=False)
@@ -102,7 +103,7 @@ async def captchaVerifierV2(gt, challenge, userid):
     while captcha_cnt < 5:
         captcha_cnt += 1
         try:
-            print(f'测试新版自动过码中，当前尝试第{captcha_cnt}次。')
+            sv.logger.info(f'测试新版自动过码中，当前尝试第{captcha_cnt}次。')
 
             await sleep(1)
 
@@ -122,7 +123,7 @@ async def captchaVerifierV2(gt, challenge, userid):
                 res = await (await aiorequests.get(url=f"https://pcrd.tencentbot.top/check/{uuid}", headers=header)).content
                 #if str(res.status_code) != "200":
                 #    continue
-                print(res)
+                # print(res)
                 res = loads(res)
                 if "queue_num" in res:
                     nu = res["queue_num"]
@@ -130,7 +131,7 @@ async def captchaVerifierV2(gt, challenge, userid):
                     tim = min(int(nu), 3) * 10
                     msg.append(f"sleep={tim}")
                     #await bot.send_private_msg(user_id=acinfo['admin'], message=f"thread{ordd}: \n" + "\n".join(msg))
-                    print(f"pcrjjc2:\n" + "\n".join(msg))
+                    # print(f"pcrjjc2:\n" + "\n".join(msg))
                     msg = []
                     # print(f'farm: {uuid} in queue, sleep {tim} seconds')
                     await sleep(tim)
@@ -141,7 +142,7 @@ async def captchaVerifierV2(gt, challenge, userid):
                     elif info == "in running":
                         await sleep(5)
                     elif 'validate' in info:
-                        print(f'info={info}')
+                        # print(f'info={info}')
                         validating = False
                         return info["challenge"], info["gt_user_id"], info["validate"]
                 if ccnt >= 10:
@@ -330,7 +331,7 @@ async def on_query_arena(bot, ev):
             last_login_str = time.strftime('%Y-%m-%d %H:%M:%S', last_login_date)
 
             await bot.finish(ev,
-                             f'''昵称：{util.filt_message(str(res['user_info']["user_name"]))}
+                            f'''昵称：{util.filt_message(str(res['user_info']["user_name"]))}
 jjc排名：{res['user_info']["arena_rank"]}
 pjjc排名：{res['user_info']["grand_arena_rank"]}
 最后登录：{last_login_str}''', at_sender=False)
@@ -466,7 +467,7 @@ async def send_arena_sub_status(bot, ev):
     else:
         info = binds[uid]
         await bot.finish(ev,
-                         f'''
+                        f'''
     当前竞技场绑定ID：{info['id']}
     竞技场订阅：{'开启' if info['arena_on'] else '关闭'}
     公主竞技场订阅：{'开启' if info['grand_arena_on'] else '关闭'}''', at_sender=True)
@@ -476,7 +477,9 @@ async def send_arena_sub_status(bot, ev):
 async def on_arena_schedule():
     global cache, binds, lck
     bot = get_bot()
-
+    # all_services = SafeService.get_loaded_services()
+    on_g = map(str, SafeService.get_loaded_services()[sv_name].enable_group)
+    off_g = map(str, SafeService.get_loaded_services()[sv_name].disable_group)
     bind_cache = {}
 
     async with lck:
@@ -508,29 +511,31 @@ async def on_arena_schedule():
 
             if res[0] > last[0] and info['arena_on']:
                 for sid in hoshino.get_self_ids():
-                    try:
-                        await bot.send_group_msg(
-                            self_id=sid,
-                            group_id=int(info['gid']),
-                            message=f'[CQ:at,qq={info["uid"]}]jjc：{last[0]}->{res[0]} ▼{res[0] - last[0]}'
-                        )
-                        break
-                    except Exception as e:
-                        gid = int(info['gid'])
-                        sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
+                    if (int(info['gid']) in on_g) or (not (int(info['gid']) in off_g)):
+                        try:
+                            await bot.send_group_msg(
+                                self_id=sid,
+                                group_id=int(info['gid']),
+                                message=f'[CQ:at,qq={info["uid"]}]jjc：{last[0]}->{res[0]} ▼{res[0] - last[0]}'
+                            )
+                            break
+                        except Exception as e:
+                            gid = int(info['gid'])
+                            sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
 
             if res[1] > last[1] and info['grand_arena_on']:
                 for sid in hoshino.get_self_ids():
-                    try:
-                        await bot.send_group_msg(
-                            self_id=sid,
-                            group_id=int(info['gid']),
-                            message=f'[CQ:at,qq={info["uid"]}]pjjc：{last[1]}->{res[1]} ▼{res[1] - last[1]}'
-                        )
-                        break
-                    except Exception as e:
-                        gid = int(info['gid'])
-                        sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
+                    if (int(info['gid']) in on_g) or (not (int(info['gid']) in off_g)):
+                        try:
+                            await bot.send_group_msg(
+                                self_id=sid,
+                                group_id=int(info['gid']),
+                                message=f'[CQ:at,qq={info["uid"]}]pjjc：{last[1]}->{res[1]} ▼{res[1] - last[1]}'
+                            )
+                            break
+                        except Exception as e:
+                            gid = int(info['gid'])
+                            sv.logger.info(f'bot账号{sid}不在群{gid}中，将忽略该消息')
 
         except ApiException as e:
             sv.logger.info(f'对{info["id"]}的检查出错\n{format_exc()}')
