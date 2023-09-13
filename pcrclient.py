@@ -6,7 +6,7 @@ from json import loads
 from hashlib import md5
 from Crypto.Cipher import AES
 from base64 import b64encode, b64decode
-from .bsgamesdk import login
+from .bsgamesdk import login,captch
 from asyncio import sleep
 from re import search
 from datetime import datetime
@@ -211,9 +211,39 @@ class pcrclient:
             'channel': str(self.channel),
             'platform': str(self.platform)
         })
-        if 'is_risk' in lres and lres['is_risk'] == 1:
-            self.shouldLoginB = True
-            return
+
+        retry_times=0
+        while retry_times<5:
+            retry_times+=1
+            if "is_risk" in lres and lres["is_risk"] == 1:
+                print(lres)
+                #self.shouldLoginB = True
+                while True:
+                    cap=await captch()
+                    challenge, gt_user_id, validate = await self.bsdk.captchaVerifier(cap['gt'],cap['challenge'],cap['gt_user_id'])
+                    if validate:
+                        lres = await self.callapi(
+                            "/tool/sdk_login",
+                            {
+                                "uid": str(self.uid),
+                                "access_key": self.access_key,
+                                "channel": str(self.channel),
+                                "platform": str(self.platform),
+                                'challenge': challenge,
+                                'validate': validate,
+                                'seccode': validate+"|jordan",
+                                'captcha_type': '1',
+                                'image_token': '',
+                                'captcha_code': '',
+                            },
+                        )
+                        break
+                    else:
+                        pass
+            else:
+                break
+        else:
+            raise Exception("验证码错误")
         
         gamestart = await self.callapi('/check/game_start', {
             'apptype': 0,
