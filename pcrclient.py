@@ -219,27 +219,31 @@ class pcrclient:
                 print(lres)
                 #self.shouldLoginB = True
                 while True:
-                    cap=await captch()
-                    challenge, gt_user_id, validate = await self.bsdk.captchaVerifier(cap['gt'],cap['challenge'],cap['gt_user_id'])
-                    if validate:
-                        lres = await self.callapi(
-                            "/tool/sdk_login",
-                            {
-                                "uid": str(self.uid),
-                                "access_key": self.access_key,
-                                "channel": str(self.channel),
-                                "platform": str(self.platform),
-                                'challenge': challenge,
-                                'validate': validate,
-                                'seccode': validate+"|jordan",
-                                'captcha_type': '1',
-                                'image_token': '',
-                                'captcha_code': '',
-                            },
-                        )
-                        break
-                    else:
-                        pass
+                    try:
+                        cap=await captch()
+                        challenge, gt_user_id, validate = await self.bsdk.captchaVerifier(cap['gt'],cap['challenge'],cap['gt_user_id'])
+                        if validate:
+                            lres = await self.callapi(
+                                "/tool/sdk_login",
+                                {
+                                    "uid": str(self.uid),
+                                    "access_key": self.access_key,
+                                    "channel": str(self.channel),
+                                    "platform": str(self.platform),
+                                    'challenge': challenge,
+                                    'validate': validate,
+                                    'seccode': validate+"|jordan",
+                                    'captcha_type': '1',
+                                    'image_token': '',
+                                    'captcha_code': '',
+                                },
+                            )
+                            break
+                        else:
+                            pass
+                    except:
+                        self.shouldLoginB = True
+                        await self.bililogin()
             else:
                 break
         else:
