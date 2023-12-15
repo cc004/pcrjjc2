@@ -257,8 +257,6 @@ class pcrclient:
         
         if not gamestart['now_tutorial']:
             raise Exception("该账号没过完教程!")
-            
-        await self.callapi('/check/check_agreement', {})
 
         await self.callapi('/load/index', {
             'carrier': 'OPPO'
