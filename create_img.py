@@ -36,18 +36,16 @@ def _cut_str(obj: str, sec: int):
     """
     return [obj[i: i+sec] for i in range(0, len(obj), sec)]
 
-def _generate_info_pic_internal(data, uid):
+def _generate_info_pic_internal(data, uid, processed_pic_dir):
     '''
     个人资料卡生成
     '''
     frame_tmp = get_frame(uid)
     im = Image.open(path / 'img' / 'template.png').convert("RGBA") # 图片模板
     im_frame = Image.open(path / 'img' / 'frame' / f'{frame_tmp}').convert("RGBA") # 头像框
-    try:
-        id_favorite = int(str(data['favorite_unit']['id'])[0:4]) # 截取第1位到第4位的字符
-    except:
-        id_favorite = 1000 # 一个？角色
-    pic_dir = chara.fromid(id_favorite).icon.path
+    
+    pic_dir = processed_pic_dir
+    
     user_avatar = Image.open(pic_dir).convert("RGBA")
     user_avatar = user_avatar.resize((90, 90))
     im.paste(user_avatar, (44, 150), mask=user_avatar)
@@ -261,5 +259,14 @@ def _generate_support_pic_internal(data, uid):
 async def generate_support_pic(*args, **kwargs):
     return await run_sync_func(_generate_support_pic_internal, *args, **kwargs)
 
-async def generate_info_pic(*args, **kwargs):
+async def generate_info_pic_processed(*args, **kwargs):
     return await run_sync_func(_generate_info_pic_internal, *args, **kwargs)
+
+async def generate_info_pic(data, uid):
+    try:
+        id_favorite = int(str(data['favorite_unit']['id'])[0:4]) # 截取第1位到第4位的字符
+    except:
+        id_favorite = 1000 # 一个？角色
+    pic_dir = await chara.fromid(id_favorite).get_icon()
+    return await generate_info_pic_processed(data, uid, pic_dir)
+    
