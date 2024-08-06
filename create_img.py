@@ -19,7 +19,7 @@ running_loop: Union[asyncio.AbstractEventLoop, None] = None
 def sync_get_icon(id) -> R.ResImg:
     obj = chara.fromid(id)
     return asyncio.new_event_loop().run_until_complete(
-        asyncio.wait_for(obj.get_icon(), loop=running_loop)
+        asyncio.wait_for(obj.get_icon(), timeout=None, loop=running_loop)
     )
     
 def get_frame(user_id):
