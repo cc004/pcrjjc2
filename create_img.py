@@ -6,6 +6,7 @@ from pathlib import Path
 import zhconv
 from hoshino.aiorequests import run_sync_func
 from hoshino import util, R
+from typing import Union
 
 path = Path(__file__).parent # 获取文件所在目录的绝对路径
 font_cn_path = str(path / 'fonts' / 'SourceHanSansCN-Medium.otf')  # Path是路径对象，必须转为str之后ImageFont才能读取
@@ -13,7 +14,7 @@ font_tw_path = str(path / 'fonts' / 'pcrtwfont.ttf')
 
 server_name = 'bilibili官方服务器' # 设置服务器名称
 
-running_loop: asyncio.AbstractEventLoop | None = None
+running_loop: Union[asyncio.AbstractEventLoop, None] = None
 
 def sync_get_icon(id) -> R.ResImg:
     obj = chara.fromid(id)
