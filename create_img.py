@@ -16,8 +16,10 @@ server_name = 'bilibili官方服务器' # 设置服务器名称
 running_loop: asyncio.AbstractEventLoop | None = None
 
 def sync_get_icon(id) -> R.ResImg:
-    obj = chara.fromid(id)  
-    return running_loop.run_until_complete(obj.get_icon())
+    obj = chara.fromid(id)
+    return asyncio.new_event_loop().run_until_complete(
+        asyncio.wait_for(obj.get_icon(), loop=running_loop)
+    )
     
 def get_frame(user_id):
     current_dir = path / 'frame.json'
