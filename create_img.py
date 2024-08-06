@@ -13,10 +13,10 @@ font_tw_path = str(path / 'fonts' / 'pcrtwfont.ttf')
 
 server_name = 'bilibili官方服务器' # 设置服务器名称
 
-running_loop: asyncio.AbstractEventLoop = None
+running_loop: asyncio.AbstractEventLoop | None = None
 
 def sync_get_icon(id) -> R.ResImg:
-    obj = chara.fromid(id)
+    obj = chara.fromid(id)  
     return running_loop.run_until_complete(obj.get_icon())
     
 def get_frame(user_id):
@@ -267,11 +267,13 @@ def _generate_support_pic_internal(data, uid):
     return im
 
 async def generate_support_pic(*args, **kwargs):
+    global running_loop
     if running_loop is None:
         running_loop = asyncio.get_running_loop()
     return await run_sync_func(_generate_support_pic_internal, *args, **kwargs)
 
 async def generate_info_pic(*args, **kwargs):
+    global running_loop
     if running_loop is None:
         running_loop = asyncio.get_running_loop()
     return await run_sync_func(_generate_info_pic_internal, *args, **kwargs)
