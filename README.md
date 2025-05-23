@@ -7,6 +7,7 @@
 ## 不遵守协议的耻辱柱
 
 - **[@watermellye](https://github.com/watermellye)**
+- **魔法书（U.N.A.）** 闭源sf
 
 ## 配置方法
 
