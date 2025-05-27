@@ -1,3 +1,5 @@
+# 竞技场提醒已被b站认定为外挂，跑路
+
 # pcrjjc2
 
 本插件是[pcrjjc](https://github.com/lulu666lulu/pcrjjc)重置版，不需要使用其他后端api，但是需要自行配置客户端
